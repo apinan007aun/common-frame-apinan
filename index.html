@@ -158,7 +158,7 @@
             <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200/70">
                 <div class="flex items-center justify-between mb-4">
                     <h3 class="font-bold text-[#00407A] text-base flex items-center gap-2">
-                        <i class="fa-solid fa-chart-pie text-[#0066C2]"></i> สัดส่วนสถิติตามประเภทงาน
+                        <i class="fa-solid fa-chart-pie text-[#70B035]"></i> ร้อยละของความสำเร็จ
                     </h3>
                 </div>
                 <div class="relative h-72 flex items-center justify-center">
@@ -216,7 +216,7 @@
                 </table>
             </div>
 
-            <!-- Pagination Bar (แถบเปลี่ยนหน้า 10 รายการ/หน้า) -->
+            <!-- Pagination Bar -->
             <div id="paginationContainer" class="p-4 bg-slate-50 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs no-print">
                 <div class="text-slate-500 font-medium" id="paginationInfo">
                     แสดง 0 - 0 จากทั้งหมด 0 รายการ
@@ -555,6 +555,7 @@
         }
 
         function renderCharts() {
+            // 1. Bar Chart: แยกตามอำเภอ
             const districtMap = {};
             jobs.forEach(j => {
                 if(!districtMap[j.district]) {
@@ -603,11 +604,23 @@
                 }
             });
 
-            let sumControl = 0, sumStore = 0;
+            // 2. Doughnut Chart: ร้อยละของความสำเร็จ
+            let totalAll = 0;
+            let completedAll = 0;
+
             jobs.forEach(j => {
-                sumControl += Number(j.controlTotal || 0);
-                sumStore += Number(j.storeTotal || 0);
+                const cTot = Number(j.controlTotal || 0);
+                const cComp = Number(j.controlCompleted || 0);
+                const sTot = Number(j.storeTotal || 0);
+                const sComp = Number(j.storeCompleted || 0);
+
+                totalAll += (cTot + sTot);
+                completedAll += (cComp + sComp);
             });
+
+            const remainingAll = Math.max(0, totalAll - completedAll);
+            const completedPct = totalAll > 0 ? ((completedAll / totalAll) * 100).toFixed(1) : 0;
+            const remainingPct = totalAll > 0 ? (100 - completedPct).toFixed(1) : 100;
 
             const ctxType = document.getElementById('typeChart').getContext('2d');
             if(typeChartInstance) typeChartInstance.destroy();
@@ -615,17 +628,31 @@
             typeChartInstance = new Chart(ctxType, {
                 type: 'doughnut',
                 data: {
-                    labels: ['Control ที่ต้องปรับปรุง', 'ร้านค้าที่ต้องบันทึกเพิ่ม'],
+                    labels: [
+                        `เสร็จแล้ว (${completedPct}%)`, 
+                        `คงเหลือ (${remainingPct}%)`
+                    ],
                     datasets: [{
-                        data: [sumControl, sumStore],
-                        backgroundColor: ['#0066C2', '#70B035']
+                        data: [completedAll, remainingAll],
+                        backgroundColor: ['#70B035', '#CBD5E1'],
+                        borderWidth: 2,
+                        borderColor: '#ffffff'
                     }]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
                     plugins: {
-                        legend: { position: 'bottom', labels: { font: { family: 'Prompt', size: 12 } } }
+                        legend: { position: 'bottom', labels: { font: { family: 'Prompt', size: 12 } } },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const label = context.label || '';
+                                    const val = context.raw || 0;
+                                    return ` ${label}: ${val.toLocaleString()} รายการ`;
+                                }
+                            }
+                        }
                     }
                 }
             });
