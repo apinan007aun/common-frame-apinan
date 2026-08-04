@@ -1,0 +1,919 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ระบบสรุปยอด COMMON FRAME of Establishment</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- SheetJS (xlsx) -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <!-- html2pdf.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <!-- QRCode.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <!-- Google Fonts - Prompt -->
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Prompt', sans-serif;
+            background-color: #f0f4f9;
+        }
+        @media print {
+            .no-print { display: none !important; }
+            .print-only { display: block !important; }
+            body { background: white; }
+        }
+    </style>
+</head>
+<body class="text-slate-800">
+
+    <!-- Top Navigation / Header -->
+    <header class="bg-[#00407A] text-white shadow-md sticky top-0 z-30 no-print">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="bg-[#0066C2]/50 p-2 rounded-xl border border-white/20">
+                    <i class="fa-solid font-bold fa-chart-pie text-xl text-[#00A3E0]"></i>
+                </div>
+                <div>
+                    <h1 class="font-bold text-lg leading-tight tracking-wide text-white">ระบบสรุปยอด COMMON FRAME of Establishment</h1>
+                    <p class="text-xs text-sky-200/90">ระบบติดตามและบันทึกข้อมูลงานบริหารจัดการ (Admin Portal)</p>
+                </div>
+            </div>
+            
+            <!-- Actions Header -->
+            <div class="flex items-center space-x-2">
+                <!-- ปุ่ม นำเข้าข้อมูล (.xlsx/.csv) -->
+                <button onclick="document.getElementById('importFileInput').click()" class="bg-[#0066C2] hover:bg-[#00407A] text-white text-xs sm:text-sm font-medium px-3 py-2 rounded-xl transition flex items-center gap-1.5 shadow-sm" title="นำเข้าไฟล์สำรองข้อมูล (.xlsx หรือ .csv)">
+                    <i class="fa-solid fa-file-import text-amber-300"></i> <span class="hidden sm:inline">นำเข้าข้อมูล (.xlsx/.csv)</span>
+                </button>
+                <input type="file" id="importFileInput" accept=".xlsx, .xls, .csv" onchange="importExcelData(event)" class="hidden">
+
+                <!-- ปุ่ม ส่งออก Excel -->
+                <button onclick="exportToExcel()" class="bg-[#0066C2] hover:bg-[#00407A] text-white text-xs sm:text-sm font-medium px-3 py-2 rounded-xl transition flex items-center gap-1.5 shadow-sm" title="ส่งออกไฟล์ข้อมูล (.xlsx)">
+                    <i class="fa-solid fa-file-excel text-emerald-300"></i> <span class="hidden sm:inline">ส่งออก Excel</span>
+                </button>
+
+                <!-- ปุ่ม PDF -->
+                <button onclick="exportToPDF()" class="bg-[#0066C2] hover:bg-[#00407A] text-white text-xs sm:text-sm font-medium px-3 py-2 rounded-xl transition flex items-center gap-1.5 shadow-sm">
+                    <i class="fa-solid fa-file-pdf text-rose-300"></i> <span class="hidden sm:inline">PDF</span>
+                </button>
+
+                <!-- ปุ่ม แชร์ QR -->
+                <button onclick="openShareModal()" class="bg-[#FFCC00] hover:bg-[#e6b800] text-slate-900 text-xs sm:text-sm font-bold px-3 py-2 rounded-xl transition flex items-center gap-1.5 shadow-md">
+                    <i class="fa-solid fa-share-nodes text-[#00407A]"></i> แชร์ลิงก์ / QR
+                </button>
+
+                <!-- ปุ่ม เพิ่มงาน -->
+                <button onclick="openModal()" class="bg-[#70B035] hover:bg-[#5a9028] text-white text-xs sm:text-sm font-bold px-3.5 py-2 rounded-xl transition flex items-center gap-1.5 shadow-md ml-1">
+                    <i class="fa-solid fa-plus"></i> เพิ่มงาน
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main id="dashboard-content" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+        
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-6 rounded-2xl shadow-sm border border-slate-200/80">
+            <div>
+                <h2 class="text-xl font-bold text-[#00407A] flex items-center gap-2">
+                    <span class="w-2.5 h-6 bg-[#00A3E0] rounded-full inline-block"></span>
+                    ระบบสรุปยอด COMMON FRAME of Establishment
+                </h2>
+                <p class="text-sm text-slate-500 mt-1 pl-4">แดชบอร์ดสรุปยอดงาน Control ที่ต้องปรับปรุง และร้านค้าที่ต้องบันทึกเพิ่ม รายอำเภอ/อปท.</p>
+            </div>
+            <div class="flex items-center gap-3">
+                <span class="inline-flex items-center px-3.5 py-1.5 rounded-full text-xs font-semibold bg-sky-50 text-[#00407A] border border-sky-200">
+                    <span class="w-2 h-2 mr-2 bg-[#70B035] rounded-full animate-pulse"></span> Admin Mode
+                </span>
+            </div>
+        </div>
+
+        <!-- Metric KPI Cards -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+            <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200/70 border-l-4 border-l-[#00407A] flex items-center justify-between">
+                <div>
+                    <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">งานทั้งหมดที่ได้รับ</p>
+                    <h3 id="kpi-total" class="text-3xl font-extrabold text-[#00407A] mt-1">0</h3>
+                    <p class="text-xs text-slate-500 mt-1">Control + ร้านค้า</p>
+                </div>
+                <div class="w-12 h-12 bg-sky-50 text-[#00407A] rounded-2xl flex items-center justify-center text-xl">
+                    <i class="fa-solid fa-folder-open"></i>
+                </div>
+            </div>
+
+            <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200/70 border-l-4 border-l-[#0066C2] flex items-center justify-between">
+                <div>
+                    <p class="text-xs font-semibold text-[#0066C2] uppercase tracking-wider">Control ที่ต้องปรับปรุง</p>
+                    <h3 id="kpi-control" class="text-3xl font-extrabold text-[#0066C2] mt-1">0</h3>
+                    <p id="kpi-control-completed" class="text-xs text-[#70B035] font-semibold mt-1">เสร็จแล้ว 0 รายการ</p>
+                </div>
+                <div class="w-12 h-12 bg-blue-50 text-[#0066C2] rounded-2xl flex items-center justify-center text-xl">
+                    <i class="fa-solid fa-sliders"></i>
+                </div>
+            </div>
+
+            <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200/70 border-l-4 border-l-[#00A3E0] flex items-center justify-between">
+                <div>
+                    <p class="text-xs font-semibold text-[#0082b3] uppercase tracking-wider">ร้านค้าที่ต้องบันทึกเพิ่ม</p>
+                    <h3 id="kpi-stores" class="text-3xl font-extrabold text-[#00A3E0] mt-1">0</h3>
+                    <p id="kpi-stores-completed" class="text-xs text-[#70B035] font-semibold mt-1">เสร็จแล้ว 0 รายการ</p>
+                </div>
+                <div class="w-12 h-12 bg-cyan-50 text-[#00A3E0] rounded-2xl flex items-center justify-center text-xl">
+                    <i class="fa-solid fa-store"></i>
+                </div>
+            </div>
+
+            <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200/70 border-l-4 border-l-[#70B035] flex items-center justify-between">
+                <div>
+                    <p class="text-xs font-semibold text-[#528325] uppercase tracking-wider">รวมบันทึกงาน (เสร็จแล้ว)</p>
+                    <h3 id="kpi-total-completed" class="text-3xl font-extrabold text-[#70B035] mt-1">0</h3>
+                    <p id="kpi-progress-percent" class="text-xs text-slate-500 font-medium mt-1">ความคืบหน้า 0%</p>
+                </div>
+                <div class="w-12 h-12 bg-emerald-50 text-[#70B035] rounded-2xl flex items-center justify-center text-xl">
+                    <i class="fa-solid fa-circle-check"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Visual Analytics Charts -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div class="lg:col-span-2 bg-white p-6 rounded-2xl shadow-sm border border-slate-200/70">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="font-bold text-[#00407A] text-base flex items-center gap-2">
+                        <i class="fa-solid fa-chart-column text-[#0066C2]"></i> เปรียบเทียบจำนวนงาน Control และร้านค้า แยกตามรายอำเภอ
+                    </h3>
+                    <span class="text-xs text-slate-400">หน่วย: จำนวนงาน</span>
+                </div>
+                <div class="relative h-72">
+                    <canvas id="districtChart"></canvas>
+                </div>
+            </div>
+
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200/70">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="font-bold text-[#00407A] text-base flex items-center gap-2">
+                        <i class="fa-solid fa-chart-pie text-[#0066C2]"></i> สัดส่วนสถิติตามประเภทงาน
+                    </h3>
+                </div>
+                <div class="relative h-72 flex items-center justify-center">
+                    <canvas id="typeChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Data Management Table Section -->
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200/70 overflow-hidden">
+            <div class="p-6 border-b border-slate-100 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div>
+                    <h3 class="font-bold text-[#00407A] text-base">ตารางบันทึกยอดงานราย อำเภอ / อปท.</h3>
+                    <p class="text-xs text-slate-500 mt-0.5">จัดการ แก้ไข จัดลำดับ และสลับรูปแบบการแสดงผล (แสดงผล 10 รายการ/หน้า)</p>
+                </div>
+                
+                <div class="flex flex-wrap items-center gap-3 no-print">
+                    <div class="bg-slate-100 p-1 rounded-xl flex items-center border border-slate-200">
+                        <button onclick="setViewMode('compact')" id="btn-mode-compact" class="px-3 py-1.5 text-xs font-semibold rounded-lg transition shadow-sm bg-white text-[#00407A]">
+                            <i class="fa-solid fa-table-list mr-1"></i> สรุปตัวเลข
+                        </button>
+                        <button onclick="setViewMode('detailed')" id="btn-mode-detailed" class="px-3 py-1.5 text-xs font-semibold rounded-lg transition text-slate-500 hover:text-slate-800">
+                            <i class="fa-solid fa-table-cells mr-1"></i> การ์ดย่อย
+                        </button>
+                    </div>
+
+                    <div class="relative min-w-[180px]">
+                        <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                        <input type="text" id="searchInput" oninput="resetPageAndRender()" placeholder="ค้นหาอำเภอ / อปท..." class="w-full text-xs pl-8 pr-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0066C2]">
+                    </div>
+                    <select id="districtFilter" onchange="resetPageAndRender()" class="text-xs py-2 px-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0066C2] bg-white">
+                        <option value="">-- ทุกอำเภอ --</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-sm text-slate-600">
+                    <thead class="bg-[#00407A]/5 text-xs text-[#00407A] uppercase font-bold border-b border-slate-200">
+                        <tr>
+                            <th class="px-3 py-4 text-center no-print" style="width: 70px;">ลำดับ</th>
+                            <th class="px-4 py-4">อำเภอ</th>
+                            <th class="px-4 py-4">อปท.</th>
+                            <th class="px-5 py-4 text-center">Control ที่ต้องปรับปรุง</th>
+                            <th class="px-5 py-4 text-center">ร้านค้าที่ต้องบันทึกเพิ่ม</th>
+                            <th class="px-4 py-4 text-center bg-[#70B035]/10 text-[#3b601a] font-bold border-x border-[#70B035]/20">รวมบันทึกงาน (เสร็จแล้ว)</th>
+                            <th class="px-4 py-4 text-center">งานทั้งหมด</th>
+                            <th class="px-4 py-4">ความคืบหน้า</th>
+                            <th class="px-4 py-4">ผู้รับผิดชอบ</th>
+                            <th class="px-4 py-4 text-center no-print">จัดการ</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody" class="divide-y divide-slate-100">
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination Bar (แถบเปลี่ยนหน้า 10 รายการ/หน้า) -->
+            <div id="paginationContainer" class="p-4 bg-slate-50 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs no-print">
+                <div class="text-slate-500 font-medium" id="paginationInfo">
+                    แสดง 0 - 0 จากทั้งหมด 0 รายการ
+                </div>
+                <div class="flex items-center gap-2">
+                    <button onclick="changePage(-1)" id="btnPrevPage" class="px-3 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-100 text-slate-700 font-medium transition disabled:opacity-50 disabled:cursor-not-allowed">
+                        <i class="fa-solid fa-chevron-left mr-1"></i> ก่อนหน้า
+                    </button>
+                    <span id="pageIndicator" class="px-3 py-1.5 font-bold text-[#00407A] bg-sky-50 rounded-lg border border-sky-200">
+                        หน้า 1 / 1
+                    </span>
+                    <button onclick="changePage(1)" id="btnNextPage" class="px-3 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-100 text-slate-700 font-medium transition disabled:opacity-50 disabled:cursor-not-allowed">
+                        ถัดไป <i class="fa-solid fa-chevron-right ml-1"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Modal Form: Add / Edit Job -->
+    <div id="jobModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4 no-print">
+        <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-hidden border border-slate-100">
+            <div class="bg-[#00407A] px-6 py-4 text-white flex justify-between items-center">
+                <h3 id="modalTitle" class="font-bold text-base text-white">เพิ่มรายการงานใหม่</h3>
+                <button onclick="closeModal()" class="text-sky-200 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <form id="jobForm" onsubmit="handleFormSubmit(event)" class="p-6 space-y-4">
+                <input type="hidden" id="jobId">
+                
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1">อำเภอ <span class="text-rose-500">*</span></label>
+                    <input type="text" id="districtInput" list="districtHistory" autocomplete="off" required placeholder="พิมพ์ หรือ เลือกจากประวัติที่เคยบันทึก..." class="w-full text-sm px-3.5 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0066C2]">
+                    <datalist id="districtHistory"></datalist>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1">อปท. (องค์กรปกครองส่วนท้องถิ่น) <span class="text-rose-500">*</span></label>
+                    <input type="text" id="optInput" list="optHistory" autocomplete="off" required placeholder="พิมพ์ หรือ เลือกจากประวัติที่เคยบันทึก..." class="w-full text-sm px-3.5 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0066C2]">
+                    <datalist id="optHistory"></datalist>
+                </div>
+
+                <div class="p-4 bg-sky-50/50 rounded-2xl border border-sky-100 space-y-4">
+                    <h4 class="text-xs font-bold text-[#00407A] uppercase tracking-wider flex items-center gap-1.5">
+                        <i class="fa-solid fa-list-check text-[#0066C2]"></i> บันทึกจำนวนงานตามประเภท
+                    </h4>
+                    
+                    <div class="bg-white p-3 rounded-xl border border-sky-200 shadow-sm space-y-2">
+                        <label class="block text-xs font-bold text-[#0066C2]">Control ที่ต้องปรับปรุง</label>
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <span class="text-[11px] text-slate-500 font-medium">จำนวนงานทั้งหมด</span>
+                                <input type="number" id="controlTotalInput" min="0" required placeholder="0" class="w-full text-sm px-3 py-1.5 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0066C2]">
+                            </div>
+                            <div>
+                                <span class="text-[11px] text-slate-500 font-medium">ดำเนินการแล้วเสร็จ</span>
+                                <input type="number" id="controlCompletedInput" min="0" required placeholder="0" class="w-full text-sm px-3 py-1.5 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0066C2]">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white p-3 rounded-xl border border-cyan-200 shadow-sm space-y-2">
+                        <label class="block text-xs font-bold text-[#00A3E0]">ร้านค้าที่ต้องบันทึกเพิ่ม</label>
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <span class="text-[11px] text-slate-500 font-medium">จำนวนงานทั้งหมด</span>
+                                <input type="number" id="storeTotalInput" min="0" required placeholder="0" class="w-full text-sm px-3 py-1.5 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0066C2]">
+                            </div>
+                            <div>
+                                <span class="text-[11px] text-slate-500 font-medium">ดำเนินการแล้วเสร็จ</span>
+                                <input type="number" id="storeCompletedInput" min="0" required placeholder="0" class="w-full text-sm px-3 py-1.5 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0066C2]">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1">ผู้รับผิดชอบ / มอบหมายงาน</label>
+                    <input type="text" id="assigneeInput" list="assigneeHistory" autocomplete="off" placeholder="พิมพ์ หรือ เลือกจากประวัติที่เคยบันทึก..." class="w-full text-sm px-3.5 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0066C2]">
+                    <datalist id="assigneeHistory"></datalist>
+                </div>
+
+                <div class="flex justify-end gap-3 pt-4 border-t border-slate-100">
+                    <button type="button" onclick="closeModal()" class="px-4 py-2 text-xs font-medium text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-xl transition">ยกเลิก</button>
+                    <button type="submit" class="px-4 py-2 text-xs font-medium text-white bg-[#0066C2] hover:bg-[#00407A] rounded-xl transition shadow-md">บันทึกข้อมูล</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Share / Export QR Code Modal -->
+    <div id="shareModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4 no-print">
+        <div class="bg-white rounded-2xl shadow-xl w-full max-w-sm overflow-hidden text-center p-6 border border-slate-100 space-y-4">
+            <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+                <h3 class="font-bold text-slate-800 text-base flex items-center gap-2">
+                    <i class="fa-solid fa-share-nodes text-[#0066C2]"></i> แชร์ลิงก์และ QR Code
+                </h3>
+                <button onclick="closeShareModal()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+
+            <div class="flex flex-col items-center justify-center p-4 bg-sky-50/60 rounded-2xl border border-sky-100">
+                <div id="qrcode" class="p-2 bg-white rounded-xl shadow-sm border border-slate-100"></div>
+                <p class="text-[11px] text-slate-500 mt-2.5">สแกน QR Code เพื่อเปิดใช้งานบนมือถือ</p>
+            </div>
+
+            <div class="space-y-1.5 text-left">
+                <label class="text-xs font-semibold text-slate-700">ลิงก์เข้าใช้งานเว็บไซต์:</label>
+                <div class="flex items-center gap-1.5">
+                    <input type="text" id="shareUrlInput" readonly class="w-full text-xs px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-600 focus:outline-none">
+                    <button onclick="copyShareUrl()" class="bg-[#0066C2] hover:bg-[#00407A] text-white text-xs font-medium px-3 py-2 rounded-xl transition flex items-center gap-1 whitespace-nowrap shadow-sm">
+                        <i class="fa-solid fa-copy"></i> คัดลอก
+                    </button>
+                </div>
+                <p id="copyAlert" class="text-[11px] text-emerald-600 font-medium hidden">✓ คัดลอกลิงก์เรียบร้อยแล้ว!</p>
+            </div>
+
+            <button onclick="closeShareModal()" class="w-full py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-medium rounded-xl transition">
+                ปิดหน้าต่าง
+            </button>
+        </div>
+    </div>
+
+    <!-- Application Script -->
+    <script>
+        let jobs = JSON.parse(localStorage.getItem('common_frame_jobs_data')) || [];
+        let viewMode = 'compact';
+        let currentPage = 1;
+        const itemsPerPage = 10;
+
+        let districtChartInstance = null;
+        let typeChartInstance = null;
+        let qrCodeObj = null;
+
+        function saveData() {
+            localStorage.setItem('common_frame_jobs_data', JSON.stringify(jobs));
+            updateDashboard();
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            updateDashboard();
+        });
+
+        function resetPageAndRender() {
+            currentPage = 1;
+            renderTable();
+        }
+
+        function changePage(direction) {
+            currentPage += direction;
+            renderTable();
+        }
+
+        // ส่งออกไฟล์ข้อมูล Excel (.xlsx)
+        function exportToExcel() {
+            if (jobs.length === 0) {
+                alert('ไม่มีข้อมูลสำหรับส่งออก Excel');
+                return;
+            }
+            const exportData = jobs.map((j, idx) => {
+                const cTot = Number(j.controlTotal || 0);
+                const cComp = Number(j.controlCompleted || 0);
+                const sTot = Number(j.storeTotal || 0);
+                const sComp = Number(j.storeCompleted || 0);
+
+                const grandTotal = cTot + sTot;
+                const totalRecordedCompleted = cComp + sComp;
+                const grandRemaining = Math.max(0, grandTotal - totalRecordedCompleted);
+                const pct = grandTotal > 0 ? ((totalRecordedCompleted / grandTotal) * 100).toFixed(1) + '%' : '0%';
+
+                return {
+                    'ลำดับ': idx + 1,
+                    'อำเภอ': j.district,
+                    'อปท.': j.opt || '-',
+                    'Control ทั้งหมด': cTot,
+                    'Control เสร็จแล้ว': cComp,
+                    'ร้านค้าบันทึกเพิ่ม ทั้งหมด': sTot,
+                    'ร้านค้าบันทึกเพิ่ม เสร็จแล้ว': sComp,
+                    'รวมบันทึกงาน (เสร็จแล้ว)': totalRecordedCompleted,
+                    'รวมงานทั้งหมด': grandTotal,
+                    'คงเหลือดำเนินการ': grandRemaining,
+                    'ความคืบหน้า (%)': pct,
+                    'ผู้รับผิดชอบ': j.assignee || '-'
+                };
+            });
+
+            const worksheet = XLSX.utils.json_to_sheet(exportData);
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, "COMMON_FRAME");
+
+            const maxWidths = [8, 15, 20, 15, 15, 22, 22, 22, 15, 15, 15, 18];
+            worksheet['!cols'] = maxWidths.map(w => ({ wch: w }));
+
+            XLSX.writeFile(workbook, `COMMON_FRAME_Establishment_${new Date().toISOString().slice(0,10)}.xlsx`);
+        }
+
+        // นำเข้าข้อมูลจากไฟล์ Excel (.xlsx) หรือ CSV (.csv)
+        function importExcelData(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    const firstSheetName = workbook.SheetNames[0];
+                    const worksheet = workbook.Sheets[firstSheetName];
+                    const jsonData = XLSX.utils.sheet_to_json(worksheet);
+
+                    if (!Array.isArray(jsonData) || jsonData.length === 0) {
+                        alert('ไม่พบข้อมูลในไฟล์ หรือรูปแบบไฟล์ไม่ถูกต้อง!');
+                        return;
+                    }
+
+                    const importedJobs = [];
+                    jsonData.forEach((row) => {
+                        const district = row['อำเภอ'] || row['District'] || '';
+                        const opt = row['อปท.'] || row['OPT'] || '';
+                        
+                        if (district) {
+                            importedJobs.push({
+                                id: Date.now().toString() + Math.random().toString(36).substr(2, 4),
+                                district: String(district).trim(),
+                                opt: String(opt).trim(),
+                                controlTotal: Number(row['Control ทั้งหมด'] || row['ControlTotal'] || 0),
+                                controlCompleted: Number(row['Control เสร็จแล้ว'] || row['ControlCompleted'] || 0),
+                                storeTotal: Number(row['ร้านค้าบันทึกเพิ่ม ทั้งหมด'] || row['StoreTotal'] || 0),
+                                storeCompleted: Number(row['ร้านค้าบันทึกเพิ่ม เสร็จแล้ว'] || row['StoreCompleted'] || 0),
+                                assignee: String(row['ผู้รับผิดชอบ'] || row['Assignee'] || '').trim()
+                            });
+                        }
+                    });
+
+                    if (importedJobs.length > 0) {
+                        if (confirm(`อ่านข้อมูลสำเร็จ ${importedJobs.length} รายการ คุณต้องการนำเข้าข้อมูลมาแทนที่ข้อมูลเดิมใช่หรือไม่?`)) {
+                            jobs = importedJobs;
+                            currentPage = 1;
+                            saveData();
+                            alert('นำเข้าข้อมูลเรียบร้อยแล้ว!');
+                        }
+                    } else {
+                        alert('ไม่สามารถอ่านข้อมูลได้ กรุณาตรวจสอบว่าหัวคอลัมน์ตรงกับโครงสร้างที่กำหนด (มีคำว่า อำเภอ, อปท. ฯลฯ)');
+                    }
+                } catch (err) {
+                    alert('เกิดข้อผิดพลาดในการอ่านไฟล์: ' + err.message);
+                }
+            };
+            reader.readAsArrayBuffer(file);
+            event.target.value = '';
+        }
+
+        function updateHistoryDatalists() {
+            const districtSet = new Set();
+            const optSet = new Set();
+            const assigneeSet = new Set();
+
+            jobs.forEach(j => {
+                if(j.district) districtSet.add(j.district.trim());
+                if(j.opt) optSet.add(j.opt.trim());
+                if(j.assignee) assigneeSet.add(j.assignee.trim());
+            });
+
+            populateDatalist('districtHistory', districtSet);
+            populateDatalist('optHistory', optSet);
+            populateDatalist('assigneeHistory', assigneeSet);
+        }
+
+        function populateDatalist(elementId, valueSet) {
+            const listEl = document.getElementById(elementId);
+            if(!listEl) return;
+            listEl.innerHTML = '';
+            valueSet.forEach(val => {
+                const opt = document.createElement('option');
+                opt.value = val;
+                listEl.appendChild(opt);
+            });
+        }
+
+        function setViewMode(mode) {
+            viewMode = mode;
+            const btnCompact = document.getElementById('btn-mode-compact');
+            const btnDetailed = document.getElementById('btn-mode-detailed');
+
+            if(mode === 'compact') {
+                btnCompact.className = "px-3 py-1.5 text-xs font-semibold rounded-lg transition shadow-sm bg-white text-[#00407A]";
+                btnDetailed.className = "px-3 py-1.5 text-xs font-semibold rounded-lg transition text-slate-500 hover:text-slate-800";
+            } else {
+                btnDetailed.className = "px-3 py-1.5 text-xs font-semibold rounded-lg transition shadow-sm bg-white text-[#00407A]";
+                btnCompact.className = "px-3 py-1.5 text-xs font-semibold rounded-lg transition text-slate-500 hover:text-slate-800";
+            }
+            renderTable();
+        }
+
+        function moveRow(index, direction) {
+            const targetIndex = index + direction;
+            if(targetIndex < 0 || targetIndex >= jobs.length) return;
+            
+            const temp = jobs[index];
+            jobs[index] = jobs[targetIndex];
+            jobs[targetIndex] = temp;
+
+            saveData();
+        }
+
+        function updateDashboard() {
+            renderKPIs();
+            renderCharts();
+            populateDistrictFilter();
+            updateHistoryDatalists();
+            renderTable();
+        }
+
+        function renderKPIs() {
+            let totalControl = 0, completedControl = 0;
+            let totalStore = 0, completedStore = 0;
+
+            jobs.forEach(j => {
+                totalControl += Number(j.controlTotal || 0);
+                completedControl += Number(j.controlCompleted || 0);
+                totalStore += Number(j.storeTotal || 0);
+                completedStore += Number(j.storeCompleted || 0);
+            });
+
+            const grandTotal = totalControl + totalStore;
+            const grandCompleted = completedControl + completedStore;
+            const overallPct = grandTotal > 0 ? Math.round((grandCompleted / grandTotal) * 100) : 0;
+
+            document.getElementById('kpi-total').innerText = grandTotal.toLocaleString();
+            document.getElementById('kpi-control').innerText = totalControl.toLocaleString();
+            document.getElementById('kpi-control-completed').innerText = `เสร็จแล้ว ${completedControl.toLocaleString()} รายการ`;
+            
+            document.getElementById('kpi-stores').innerText = totalStore.toLocaleString();
+            document.getElementById('kpi-stores-completed').innerText = `เสร็จแล้ว ${completedStore.toLocaleString()} รายการ`;
+
+            document.getElementById('kpi-total-completed').innerText = grandCompleted.toLocaleString();
+            document.getElementById('kpi-progress-percent').innerText = `ความคืบหน้าภาพรวม ${overallPct}%`;
+        }
+
+        function renderCharts() {
+            const districtMap = {};
+            jobs.forEach(j => {
+                if(!districtMap[j.district]) {
+                    districtMap[j.district] = { control: 0, store: 0 };
+                }
+                districtMap[j.district].control += Number(j.controlTotal || 0);
+                districtMap[j.district].store += Number(j.storeTotal || 0);
+            });
+
+            const districtLabels = Object.keys(districtMap);
+            const controlData = districtLabels.map(d => districtMap[d].control);
+            const storeData = districtLabels.map(d => districtMap[d].store);
+
+            const ctxDistrict = document.getElementById('districtChart').getContext('2d');
+            if(districtChartInstance) districtChartInstance.destroy();
+
+            districtChartInstance = new Chart(ctxDistrict, {
+                type: 'bar',
+                data: {
+                    labels: districtLabels,
+                    datasets: [
+                        {
+                            label: 'Control ที่ต้องปรับปรุง',
+                            data: controlData,
+                            backgroundColor: '#0066C2',
+                            borderRadius: 8
+                        },
+                        {
+                            label: 'ร้านค้าที่ต้องบันทึกเพิ่ม',
+                            data: storeData,
+                            backgroundColor: '#00A3E0',
+                            borderRadius: 8
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'top', labels: { font: { family: 'Prompt' } } }
+                    },
+                    scales: {
+                        x: { ticks: { font: { family: 'Prompt' } } },
+                        y: { ticks: { font: { family: 'Prompt' } }, beginAtZero: true }
+                    }
+                }
+            });
+
+            let sumControl = 0, sumStore = 0;
+            jobs.forEach(j => {
+                sumControl += Number(j.controlTotal || 0);
+                sumStore += Number(j.storeTotal || 0);
+            });
+
+            const ctxType = document.getElementById('typeChart').getContext('2d');
+            if(typeChartInstance) typeChartInstance.destroy();
+
+            typeChartInstance = new Chart(ctxType, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Control ที่ต้องปรับปรุง', 'ร้านค้าที่ต้องบันทึกเพิ่ม'],
+                    datasets: [{
+                        data: [sumControl, sumStore],
+                        backgroundColor: ['#0066C2', '#70B035']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom', labels: { font: { family: 'Prompt', size: 12 } } }
+                    }
+                }
+            });
+        }
+
+        function populateDistrictFilter() {
+            const filterSelect = document.getElementById('districtFilter');
+            const currentVal = filterSelect.value;
+            const districts = Array.from(new Set(jobs.map(j => j.district.trim())));
+            
+            filterSelect.innerHTML = '<option value="">-- ทุกอำเภอ --</option>';
+            districts.forEach(d => {
+                const opt = document.createElement('option');
+                opt.value = d;
+                opt.innerText = d;
+                if(d === currentVal) opt.selected = true;
+                filterSelect.appendChild(opt);
+            });
+        }
+
+        function renderTable() {
+            const tbody = document.getElementById('tableBody');
+            const searchVal = document.getElementById('searchInput').value.toLowerCase().trim();
+            const selectedDistrict = document.getElementById('districtFilter').value;
+
+            tbody.innerHTML = '';
+
+            const filteredJobs = jobs.filter(j => {
+                const matchesSearch = j.district.toLowerCase().includes(searchVal) || 
+                                      (j.opt && j.opt.toLowerCase().includes(searchVal)) || 
+                                      (j.assignee && j.assignee.toLowerCase().includes(searchVal));
+                const matchesDistrict = selectedDistrict === '' || j.district === selectedDistrict;
+                return matchesSearch && matchesDistrict;
+            });
+
+            const totalItems = filteredJobs.length;
+            const totalPages = Math.ceil(totalItems / itemsPerPage) || 1;
+
+            if (currentPage > totalPages) currentPage = totalPages;
+            if (currentPage < 1) currentPage = 1;
+
+            const startIndex = (currentPage - 1) * itemsPerPage;
+            const endIndex = Math.min(startIndex + itemsPerPage, totalItems);
+            const paginatedJobs = filteredJobs.slice(startIndex, endIndex);
+
+            // Update Pagination UI
+            document.getElementById('paginationInfo').innerText = totalItems > 0 
+                ? `แสดง ${startIndex + 1} - ${endIndex} จากทั้งหมด ${totalItems} รายการ`
+                : 'ยังไม่มีข้อมูลในระบบ';
+            document.getElementById('pageIndicator').innerText = `หน้า ${currentPage} / ${totalPages}`;
+            document.getElementById('btnPrevPage').disabled = (currentPage <= 1);
+            document.getElementById('btnNextPage').disabled = (currentPage >= totalPages);
+
+            if(paginatedJobs.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="10" class="text-center py-8 text-slate-400">ยังไม่มีข้อมูลในระบบ หรือ ไม่พบข้อมูลที่ค้นหา</td></tr>`;
+                return;
+            }
+
+            paginatedJobs.forEach((item, pageIdx) => {
+                const globalIndex = startIndex + pageIdx;
+                const realIndex = jobs.findIndex(j => j.id === item.id);
+                const cTot = Number(item.controlTotal || 0);
+                const cComp = Number(item.controlCompleted || 0);
+                const sTot = Number(item.storeTotal || 0);
+                const sComp = Number(item.storeCompleted || 0);
+
+                const grandTotal = cTot + sTot;
+                const totalRecordedCompleted = cComp + sComp;
+                const pct = grandTotal > 0 ? Math.min(100, Math.round((totalRecordedCompleted / grandTotal) * 100)) : 0;
+
+                let progressBadgeClass = 'bg-slate-100 text-slate-600';
+                if(pct >= 100) progressBadgeClass = 'bg-[#70B035]/20 text-[#3b601a] font-bold';
+                else if(pct >= 50) progressBadgeClass = 'bg-[#00A3E0]/20 text-[#0066C2] font-bold';
+                else if(pct > 0) progressBadgeClass = 'bg-[#FFCC00]/30 text-amber-900 font-medium';
+
+                let controlColHTML = '';
+                let storeColHTML = '';
+
+                if(viewMode === 'compact') {
+                    controlColHTML = `
+                        <div class="text-center">
+                            <span class="text-sm font-bold text-slate-800">${cComp}</span> 
+                            <span class="text-xs text-slate-400">/ ${cTot}</span>
+                        </div>
+                    `;
+                    storeColHTML = `
+                        <div class="text-center">
+                            <span class="text-sm font-bold text-slate-800">${sComp}</span> 
+                            <span class="text-xs text-slate-400">/ ${sTot}</span>
+                        </div>
+                    `;
+                } else {
+                    controlColHTML = `
+                        <div class="bg-blue-50/70 p-2 rounded-xl border border-blue-200/60 text-center">
+                            <div class="text-[11px] text-[#0066C2] font-medium">เสร็จ ${cComp} จาก ${cTot}</div>
+                            <div class="w-full bg-blue-200/50 rounded-full h-1.5 mt-1 overflow-hidden">
+                                <div class="bg-[#0066C2] h-1.5 rounded-full" style="width: ${cTot > 0 ? (cComp/cTot)*100 : 0}%"></div>
+                            </div>
+                        </div>
+                    `;
+                    storeColHTML = `
+                        <div class="bg-cyan-50/70 p-2 rounded-xl border border-cyan-200/60 text-center">
+                            <div class="text-[11px] text-[#00A3E0] font-medium">เสร็จ ${sComp} จาก ${sTot}</div>
+                            <div class="w-full bg-cyan-200/50 rounded-full h-1.5 mt-1 overflow-hidden">
+                                <div class="bg-[#00A3E0] h-1.5 rounded-full" style="width: ${sTot > 0 ? (sComp/sTot)*100 : 0}%"></div>
+                            </div>
+                        </div>
+                    `;
+                }
+
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-sky-50/50 transition text-xs border-b border-slate-100';
+                tr.innerHTML = `
+                    <td class="px-3 py-3 text-center no-print">
+                        <div class="flex items-center justify-center gap-1">
+                            <span class="font-medium text-slate-400 text-xs w-4">${globalIndex + 1}</span>
+                            <div class="flex flex-col">
+                                <button onclick="moveRow(${realIndex}, -1)" ${realIndex === 0 ? 'disabled class="text-slate-200 cursor-not-allowed"' : 'class="text-slate-400 hover:text-[#0066C2]"'}>
+                                    <i class="fa-solid fa-caret-up text-xs"></i>
+                                </button>
+                                <button onclick="moveRow(${realIndex}, 1)" ${realIndex === jobs.length - 1 ? 'disabled class="text-slate-200 cursor-not-allowed"' : 'class="text-slate-400 hover:text-[#0066C2]"'}>
+                                    <i class="fa-solid fa-caret-down text-xs"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="px-4 py-3 font-semibold text-slate-800 text-xs sm:text-sm">${item.district}</td>
+                    <td class="px-4 py-3 font-medium text-[#00407A] bg-sky-50/80 rounded-lg">${item.opt || '-'}</td>
+                    <td class="px-5 py-3">${controlColHTML}</td>
+                    <td class="px-5 py-3">${storeColHTML}</td>
+                    
+                    <td class="px-4 py-3 text-center font-extrabold text-sm text-[#70B035] bg-[#70B035]/10 border-x border-[#70B035]/20">
+                        ${totalRecordedCompleted.toLocaleString()}
+                    </td>
+
+                    <td class="px-4 py-3 text-center font-bold text-slate-700">${grandTotal.toLocaleString()}</td>
+                    <td class="px-4 py-3">
+                        <div class="flex items-center gap-2">
+                            <div class="w-16 bg-slate-200 rounded-full h-2 overflow-hidden">
+                                <div class="bg-[#70B035] h-2 rounded-full" style="width: ${pct}%"></div>
+                            </div>
+                            <span class="text-[11px] px-2 py-0.5 rounded-md ${progressBadgeClass}">${pct}%</span>
+                        </div>
+                    </td>
+                    <td class="px-4 py-3 font-medium text-slate-600">${item.assignee || '-'}</td>
+                    <td class="px-4 py-3 text-center space-x-1 no-print">
+                        <button onclick="editJob('${item.id}')" class="text-[#0066C2] hover:text-[#00407A] font-medium text-xs bg-sky-50 hover:bg-sky-100 px-2.5 py-1.5 rounded-lg transition border border-sky-200/50">
+                            <i class="fa-solid fa-pen"></i>
+                        </button>
+                        <button onclick="deleteJob('${item.id}')" class="text-rose-600 hover:text-rose-900 font-medium text-xs bg-rose-50 hover:bg-rose-100 px-2.5 py-1.5 rounded-lg transition border border-rose-100">
+                            <i class="fa-solid fa-trash"></i>
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function openShareModal() {
+            const currentUrl = window.location.href;
+            document.getElementById('shareUrlInput').value = currentUrl;
+            document.getElementById('copyAlert').classList.add('hidden');
+
+            const qrContainer = document.getElementById('qrcode');
+            qrContainer.innerHTML = '';
+            qrCodeObj = new QRCode(qrContainer, {
+                text: currentUrl,
+                width: 140,
+                height: 140,
+                colorDark : "#00407A",
+                colorLight : "#ffffff",
+                correctLevel : QRCode.CorrectLevel.H
+            });
+
+            document.getElementById('shareModal').classList.remove('hidden');
+        }
+
+        function closeShareModal() {
+            document.getElementById('shareModal').classList.add('hidden');
+        }
+
+        function copyShareUrl() {
+            const copyText = document.getElementById('shareUrlInput');
+            copyText.select();
+            copyText.setSelectionRange(0, 99999);
+            navigator.clipboard.writeText(copyText.value);
+            
+            document.getElementById('copyAlert').classList.remove('hidden');
+        }
+
+        function openModal() {
+            document.getElementById('modalTitle').innerText = 'เพิ่มรายการงานใหม่';
+            document.getElementById('jobForm').reset();
+            document.getElementById('jobId').value = '';
+            updateHistoryDatalists();
+            document.getElementById('jobModal').classList.remove('hidden');
+        }
+
+        function closeModal() {
+            document.getElementById('jobModal').classList.add('hidden');
+        }
+
+        function handleFormSubmit(e) {
+            e.preventDefault();
+            const id = document.getElementById('jobId').value;
+            const district = document.getElementById('districtInput').value.trim();
+            const opt = document.getElementById('optInput').value.trim();
+            
+            const controlTotal = Number(document.getElementById('controlTotalInput').value);
+            const controlCompleted = Number(document.getElementById('controlCompletedInput').value);
+            
+            const storeTotal = Number(document.getElementById('storeTotalInput').value);
+            const storeCompleted = Number(document.getElementById('storeCompletedInput').value);
+
+            const assignee = document.getElementById('assigneeInput').value.trim();
+
+            if (controlCompleted > controlTotal) {
+                alert('จำนวนงาน Control ที่ดำเนินการแล้วเสร็จ ต้องไม่มากกว่าจำนวนงานทั้งหมด!');
+                return;
+            }
+            if (storeCompleted > storeTotal) {
+                alert('จำนวนงาน ร้านค้า ที่ดำเนินการแล้วเสร็จ ต้องไม่มากกว่าจำนวนงานทั้งหมด!');
+                return;
+            }
+
+            if(id) {
+                const index = jobs.findIndex(j => j.id === id);
+                if(index !== -1) {
+                    jobs[index] = { id, district, opt, controlTotal, controlCompleted, storeTotal, storeCompleted, assignee };
+                }
+            } else {
+                const newJob = {
+                    id: Date.now().toString(),
+                    district,
+                    opt,
+                    controlTotal,
+                    controlCompleted,
+                    storeTotal,
+                    storeCompleted,
+                    assignee
+                };
+                jobs.unshift(newJob);
+            }
+
+            saveData();
+            closeModal();
+        }
+
+        function editJob(id) {
+            const item = jobs.find(j => j.id === id);
+            if(!item) return;
+
+            document.getElementById('modalTitle').innerText = 'แก้ไขรายการงาน';
+            document.getElementById('jobId').value = item.id;
+            document.getElementById('districtInput').value = item.district;
+            document.getElementById('optInput').value = item.opt || '';
+            
+            document.getElementById('controlTotalInput').value = item.controlTotal || 0;
+            document.getElementById('controlCompletedInput').value = item.controlCompleted || 0;
+            
+            document.getElementById('storeTotalInput').value = item.storeTotal || 0;
+            document.getElementById('storeCompletedInput').value = item.storeCompleted || 0;
+
+            document.getElementById('assigneeInput').value = item.assignee || '';
+
+            updateHistoryDatalists();
+            document.getElementById('jobModal').classList.remove('hidden');
+        }
+
+        function deleteJob(id) {
+            if(confirm('คุณแน่ใจหรือไม่ว่าต้องการลบรายการนี้?')) {
+                jobs = jobs.filter(j => j.id !== id);
+                saveData();
+            }
+        }
+
+        function exportToPDF() {
+            const element = document.getElementById('dashboard-content');
+            const opt = {
+                margin:       0.2,
+                filename:     `COMMON_FRAME_Establishment_${new Date().toISOString().slice(0,10)}.pdf`,
+                image:        { type: 'jpeg', quality: 0.98 },
+                html2canvas:  { scale: 2, useCORS: true },
+                jsPDF:        { unit: 'in', format: 'a4', orientation: 'landscape' }
+            };
+
+            html2pdf().set(opt).from(element).save();
+        }
+    </script>
+</body>
+</html>
