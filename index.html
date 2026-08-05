@@ -28,6 +28,15 @@
             .print-only { display: block !important; }
             body { background: white; }
         }
+        /* PDF Pagination Protection Styles */
+        .pdf-page-break {
+            page-break-inside: avoid !important;
+            break-inside: avoid !important;
+        }
+        tr {
+            page-break-inside: avoid !important;
+            break-inside: avoid !important;
+        }
     </style>
 </head>
 <body class="text-slate-800">
@@ -79,7 +88,7 @@
     <!-- Main Container -->
     <main id="dashboard-content" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
         
-        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-6 rounded-2xl shadow-sm border border-slate-200/80">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-6 rounded-2xl shadow-sm border border-slate-200/80 pdf-page-break">
             <div>
                 <h2 class="text-xl font-bold text-[#00407A] flex items-center gap-2">
                     <span class="w-2.5 h-6 bg-[#00A3E0] rounded-full inline-block"></span>
@@ -95,7 +104,7 @@
         </div>
 
         <!-- Metric KPI Cards -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 pdf-page-break">
             <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200/70 border-l-4 border-l-[#00407A] flex items-center justify-between">
                 <div>
                     <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">งานทั้งหมดที่ได้รับ</p>
@@ -153,7 +162,7 @@
         </div>
 
         <!-- Visual Analytics Charts -->
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 pdf-page-break">
             <div class="lg:col-span-2 bg-white p-6 rounded-2xl shadow-sm border border-slate-200/70">
                 <div class="flex items-center justify-between mb-4">
                     <h3 class="font-bold text-[#00407A] text-base flex items-center gap-2">
@@ -350,13 +359,13 @@
 
     <!-- Application Script -->
     <script>
-        // อ่านข้อมูลที่ฝังไว้จาก URL Parameters (ถ้ามี)
+        // โหลดข้อมูลที่แชร์มาจาก URL (ถ้ามี) แล้วบันทึกลง LocalStorage
         function loadInitialData() {
             const urlParams = new URLSearchParams(window.location.search);
             const encodedData = urlParams.get('data');
             if (encodedData) {
                 try {
-                    const decodedJson = decodeURIComponent(escape(atob(encodedData)));
+                    const decodedJson = decodeURIComponent(atob(encodedData));
                     const parsedJobs = JSON.parse(decodedJson);
                     if (Array.isArray(parsedJobs) && parsedJobs.length > 0) {
                         localStorage.setItem('common_frame_jobs_data', JSON.stringify(parsedJobs));
@@ -813,7 +822,7 @@
                 }
 
                 const tr = document.createElement('tr');
-                tr.className = 'hover:bg-sky-50/50 transition text-xs border-b border-slate-100';
+                tr.className = 'hover:bg-sky-50/50 transition text-xs border-b border-slate-100 pdf-page-break';
                 tr.innerHTML = `
                     <td class="px-3 py-3 text-center no-print">
                         <div class="flex items-center justify-center gap-1">
@@ -860,7 +869,7 @@
             });
         }
 
-        // ฝังข้อมูลทั้งหมดลงใน URL แชร์ + QR Code
+        // ระบบเข้ารหัสแชร์ข้อมูลผ่าน URL + QR Code
         function openShareModal() {
             if (jobs.length === 0) {
                 alert('ยังไม่มีข้อมูลให้แชร์ กรุณาเพิ่มรายการงานก่อนครับ');
@@ -868,7 +877,7 @@
             }
 
             const jsonStr = JSON.stringify(jobs);
-            const encodedData = btoa(unescape(encodeURIComponent(jsonStr)));
+            const encodedData = btoa(encodeURIComponent(jsonStr));
             const baseUrl = window.location.origin + window.location.pathname;
             const fullShareUrl = `${baseUrl}?data=${encodedData}`;
 
@@ -988,16 +997,18 @@
             }
         }
 
+        // ฟังก์ชัน Export PDF แบบสวยงาม พอดีหน้ากระดาษ ไม่ตัดครึ่งตาราง
         function exportToPDF() {
             renderTable(true);
 
             const element = document.getElementById('dashboard-content');
             const opt = {
-                margin:       0.2,
+                margin:       [0.3, 0.3, 0.3, 0.3],
                 filename:     `COMMON_FRAME_Establishment_${new Date().toISOString().slice(0,10)}.pdf`,
                 image:        { type: 'jpeg', quality: 0.98 },
-                html2canvas:  { scale: 2, useCORS: true },
-                jsPDF:        { unit: 'in', format: 'a4', orientation: 'landscape' }
+                html2canvas:  { scale: 2, useCORS: true, logging: false },
+                jsPDF:        { unit: 'in', format: 'a4', orientation: 'landscape' },
+                pagebreak:    { mode: ['avoid-all', 'css', 'legacy'] }
             };
 
             html2pdf().set(opt).from(element).save().then(() => {
