@@ -16,6 +16,8 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <!-- QRCode.js -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <!-- LZ-String Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lz-string/1.4.4/lz-string.min.js"></script>
     <!-- Google Fonts - Prompt -->
     <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
@@ -44,9 +46,9 @@
     <header class="bg-[#00407A] text-white shadow-md sticky top-0 z-30 no-print">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
             <div class="flex items-center space-x-3">
-                <!-- โลโก้ คุณมาดี (เชิ้ตขาว เสื้อคลุมฟ้า) -->
-                <div class="relative w-11 h-11 rounded-full overflow-hidden border-2 border-[#FFCC00] shadow-md bg-white shrink-0">
-                    <img src="https://lh3.googleusercontent.com/d/1X5X8x6N3Mv4m7t3Z6x5_9a8B7C6v5D4E" alt="คุณมาดี" class="w-full h-full object-cover object-top" onerror="this.onerror=null; this.src='https://ui-avatars.com/api/?name=Ma-Dee&background=00A3E0&color=fff';">
+                <!-- โลโก้ คุณมาดี (ผู้ชายเสื้อเชิ้ตสีฟ้า) -->
+                <div class="relative w-11 h-11 rounded-full overflow-hidden border-2 border-[#FFCC00] shadow-md bg-white shrink-0 flex items-center justify-center">
+                    <img src="https://lh3.googleusercontent.com/d/1X5X8x6N3Mv4m7t3Z6x5_9a8B7C6v5D4E" alt="คุณมาดี" class="w-full h-full object-cover object-top" onerror="this.onerror=null; this.src='https://ui-avatars.com/api/?name=%E0%B8%A1%E0%B8%B2%E0%B8%94%E0%B8%B5&background=0066C2&color=fff&size=128';">
                 </div>
                 <div>
                     <h1 class="font-bold text-base sm:text-lg leading-tight tracking-wide text-white">ระบบสรุปยอด COMMON FRAME of Establishment</h1>
@@ -363,30 +365,54 @@
 
     <!-- Application Script -->
     <script>
-        // ชุดข้อมูลเริ่มต้น ( Default Payload )
-        const initialDefaultJobs = [
-            { id: '1', district: 'เมืองอุดรธานี', opt: 'ทน.อุดรธานี', controlTotal: 120, controlCompleted: 90, storeTotal: 150, storeCompleted: 110, assignee: 'คุณมาดี' },
-            { id: '2', district: 'กุมภวาปี', opt: 'ทต.กุมภวาปี', controlTotal: 80, controlCompleted: 60, storeTotal: 100, storeCompleted: 70, assignee: 'สมชาย' },
-            { id: '3', district: 'บ้านดุง', opt: 'ทต.บ้านดุง', controlTotal: 70, controlCompleted: 70, storeTotal: 80, storeCompleted: 75, assignee: 'วิภา' },
-            { id: '4', district: 'เพ็ญ', opt: 'อบต.เพ็ญ', controlTotal: 50, controlCompleted: 20, storeTotal: 60, storeCompleted: 25, assignee: 'คุณมาดี' },
-            { id: '5', district: 'หนองหาน', opt: 'ทต.หนองหาน', controlTotal: 90, controlCompleted: 75, storeTotal: 110, storeCompleted: 85, assignee: 'สมศักดิ์' }
-        ];
-
         let isSharedMode = false;
 
+        // แปลงอาร์เรย์แบบกะทัดรัด (Compact Array)
+        function compactJobs(jobsArray) {
+            return jobsArray.map(j => [
+                j.district || '',
+                j.opt || '',
+                Number(j.controlTotal || 0),
+                Number(j.controlCompleted || 0),
+                Number(j.storeTotal || 0),
+                Number(j.storeCompleted || 0),
+                j.assignee || ''
+            ]);
+        }
+
+        function decompactJobs(compactArray) {
+            return compactArray.map((arr, idx) => ({
+                id: (Date.now() + idx).toString(),
+                district: arr[0] || '',
+                opt: arr[1] || '',
+                controlTotal: Number(arr[2] || 0),
+                controlCompleted: Number(arr[3] || 0),
+                storeTotal: Number(arr[4] || 0),
+                storeCompleted: Number(arr[5] || 0),
+                assignee: arr[6] || ''
+            }));
+        }
+
+        // อ่านข้อมูลที่แชร์มาจาก URL Hash (#v=...)
         function loadInitialData() {
-            const urlParams = new URLSearchParams(window.location.search);
-            if (urlParams.get('mode') === 'view') {
-                isSharedMode = true;
-            }
-            const stored = localStorage.getItem('common_frame_jobs_data');
-            if (stored) {
+            const hash = window.location.hash;
+            if (hash && hash.startsWith('#v=')) {
                 try {
-                    const parsed = JSON.parse(stored);
-                    if (Array.isArray(parsed) && parsed.length > 0) return parsed;
-                } catch(e) {}
+                    const compressed = hash.replace('#v=', '');
+                    const decompressed = LZString.decompressFromEncodedURIComponent(compressed);
+                    if (decompressed) {
+                        const parsedCompact = JSON.parse(decompressed);
+                        if (Array.isArray(parsedCompact) && parsedCompact.length > 0) {
+                            const fullJobs = decompactJobs(parsedCompact);
+                            isSharedMode = true;
+                            return fullJobs;
+                        }
+                    }
+                } catch (e) {
+                    console.error('Error parsing compact hash data:', e);
+                }
             }
-            return initialDefaultJobs;
+            return JSON.parse(localStorage.getItem('common_frame_jobs_data')) || [];
         }
 
         let jobs = loadInitialData();
@@ -907,23 +933,31 @@
             });
         }
 
-        // ลิงก์อ่านอย่างเดียว ปลอดภัย 100% ไม่โดน Chrome บล็อก
+        // ระบบสร้าง QR Code + ลิงก์อ่านอย่างเดียว (บีบอัดข้อมูล 100% ไม่ตกหล่น ไม่โดนบล็อก)
         function openShareModal() {
-            const baseUrl = window.location.origin + window.location.pathname;
-            const viewUrl = `${baseUrl}?mode=view`;
+            if (jobs.length === 0) {
+                alert('ยังไม่มีข้อมูลให้แชร์ กรุณาเพิ่มรายการงานก่อนครับ');
+                return;
+            }
 
-            document.getElementById('shareUrlInput').value = viewUrl;
+            const compact = compactJobs(jobs);
+            const jsonStr = JSON.stringify(compact);
+            const compressed = LZString.compressToEncodedURIComponent(jsonStr);
+            const baseUrl = window.location.origin + window.location.pathname;
+            const fullShareUrl = `${baseUrl}#v=${compressed}`;
+
+            document.getElementById('shareUrlInput').value = fullShareUrl;
             document.getElementById('copyAlert').classList.add('hidden');
 
             const qrContainer = document.getElementById('qrcode');
             qrContainer.innerHTML = '';
             qrCodeObj = new QRCode(qrContainer, {
-                text: viewUrl,
-                width: 160,
-                height: 160,
+                text: fullShareUrl,
+                width: 150,
+                height: 150,
                 colorDark : "#00407A",
                 colorLight : "#ffffff",
-                correctLevel : QRCode.CorrectLevel.M
+                correctLevel : QRCode.CorrectLevel.L
             });
 
             document.getElementById('shareModal').classList.remove('hidden');
