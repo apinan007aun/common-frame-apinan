@@ -295,10 +295,8 @@
 
     <!-- Application Script -->
     <script>
-        // --------------------------------------------------------------------------------------
-        // 🛑 นำลิงก์ที่ก๊อปปี้มาจาก Google Apps Script มาวางแทรกไว้ในเครื่องหมายคำพูด ' ' ด้านล่างนี้ครับ
-        // --------------------------------------------------------------------------------------
-        const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbysUSoXVsaN4tVC9e9LayNIjULjr5iaYp1sV8PmoC4wdvhbcFQ7N00AQAeP_5_TzOPV/exec';
+        // ลิงก์ Google Apps Script สำหรับดึงและบันทึกข้อมูล
+        const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwYZlIjEn8NpAQR8xBc64IY8ciuWongPvbIRJh2MH2y5jK2A6pzf6OArzC_nwK_ZNWi/exec';
 
         let jobs = [];
         let viewMode = 'detailed';
@@ -310,12 +308,6 @@
 
         // ดึงข้อมูลจาก Google Sheets เมื่อเปิดหน้าเว็บ
         async function loadDataFromSheets() {
-            if (!GOOGLE_SCRIPT_URL || GOOGLE_SCRIPT_URL.includes('ใส่ลิงก์ของคุณตรงนี้')) {
-                jobs = JSON.parse(localStorage.getItem('common_frame_jobs_data')) || [];
-                updateDashboard();
-                return;
-            }
-
             try {
                 const res = await fetch(GOOGLE_SCRIPT_URL);
                 const data = await res.json();
@@ -335,17 +327,15 @@
             localStorage.setItem('common_frame_jobs_data', JSON.stringify(jobs));
             updateDashboard();
 
-            if (GOOGLE_SCRIPT_URL && !GOOGLE_SCRIPT_URL.includes('ใส่ลิงก์ของคุณตรงนี้')) {
-                try {
-                    await fetch(GOOGLE_SCRIPT_URL, {
-                        method: 'POST',
-                        mode: 'no-cors',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(jobs)
-                    });
-                } catch (err) {
-                    console.error("Error saving data to Google Sheets:", err);
-                }
+            try {
+                await fetch(GOOGLE_SCRIPT_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(jobs)
+                });
+            } catch (err) {
+                console.error("Error saving data to Google Sheets:", err);
             }
         }
 
