@@ -16,6 +16,8 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <!-- QRCode.js -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <!-- LZ-String Library สำหรับบีบอัด URL -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lz-string/1.4.4/lz-string.min.js"></script>
     <!-- Google Fonts - Prompt -->
     <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
@@ -28,7 +30,6 @@
             .print-only { display: block !important; }
             body { background: white; }
         }
-        /* PDF Pagination Protection Styles */
         .pdf-page-break {
             page-break-inside: avoid !important;
             break-inside: avoid !important;
@@ -45,11 +46,12 @@
     <header class="bg-[#00407A] text-white shadow-md sticky top-0 z-30 no-print">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
             <div class="flex items-center space-x-3">
-                <div class="bg-[#0066C2]/50 p-2 rounded-xl border border-white/20">
-                    <i class="fa-solid font-bold fa-chart-pie text-xl text-[#00A3E0]"></i>
+                <!-- โลโก้ รูปมาสคอตคุณมาดี -->
+                <div class="relative w-11 h-11 rounded-full overflow-hidden border-2 border-[#00A3E0] shadow-inner bg-white shrink-0">
+                    <img src="https://lh3.googleusercontent.com/d/1X5X8x6N3Mv4m7t3Z6x5_9a8B7C6v5D4E" alt="คุณมาดี" class="w-full h-full object-cover object-top" onerror="this.onerror=null; this.src='https://ui-avatars.com/api/?name=Ma-Dee&background=00A3E0&color=fff';">
                 </div>
                 <div>
-                    <h1 class="font-bold text-lg leading-tight tracking-wide text-white">ระบบสรุปยอด COMMON FRAME of Establishment</h1>
+                    <h1 class="font-bold text-base sm:text-lg leading-tight tracking-wide text-white">ระบบสรุปยอด COMMON FRAME of Establishment</h1>
                     <p class="text-xs text-sky-200/90">ระบบติดตามและบันทึกข้อมูลงานบริหารจัดการ (Admin Portal)</p>
                 </div>
             </div>
@@ -72,8 +74,8 @@
                     <i class="fa-solid fa-file-pdf text-rose-300"></i> <span class="hidden sm:inline">PDF</span>
                 </button>
 
-                <!-- ปุ่ม แชร์ QR -->
-                <button onclick="openShareModal()" class="bg-[#FFCC00] hover:bg-[#e6b800] text-slate-900 text-xs sm:text-sm font-bold px-3 py-2 rounded-xl transition flex items-center gap-1.5 shadow-md">
+                <!-- ปุ่ม แชร์ QR (จะซ่อนอัตโนมัติหากผู้ใช้งานเปิดผ่านลิงก์แชร์) -->
+                <button id="btnMainShare" onclick="openShareModal()" class="bg-[#FFCC00] hover:bg-[#e6b800] text-slate-900 text-xs sm:text-sm font-bold px-3 py-2 rounded-xl transition flex items-center gap-1.5 shadow-md">
                     <i class="fa-solid fa-share-nodes text-[#00407A]"></i> แชร์ลิงก์ / QR
                 </button>
 
@@ -89,15 +91,19 @@
     <main id="dashboard-content" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
         
         <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-6 rounded-2xl shadow-sm border border-slate-200/80 pdf-page-break">
-            <div>
-                <h2 class="text-xl font-bold text-[#00407A] flex items-center gap-2">
-                    <span class="w-2.5 h-6 bg-[#00A3E0] rounded-full inline-block"></span>
-                    ระบบสรุปยอด COMMON FRAME of Establishment
-                </h2>
-                <p class="text-sm text-slate-500 mt-1 pl-4">แดชบอร์ดสรุปยอดงาน Control ที่ต้องปรับปรุง และร้านค้าที่ต้องบันทึกเพิ่ม รายอำเภอ/อปท.</p>
+            <div class="flex items-center gap-3">
+                <div class="w-12 h-12 rounded-xl bg-sky-50 border border-sky-200 flex items-center justify-center shrink-0">
+                    <i class="fa-solid fa-chart-line text-[#0066C2] text-xl"></i>
+                </div>
+                <div>
+                    <h2 class="text-xl font-bold text-[#00407A] flex items-center gap-2">
+                        ระบบสรุปยอด COMMON FRAME of Establishment
+                    </h2>
+                    <p class="text-sm text-slate-500 mt-0.5">แดชบอร์ดสรุปยอดงาน Control ที่ต้องปรับปรุง และร้านค้าที่ต้องบันทึกเพิ่ม รายอำเภอ/อปท.</p>
+                </div>
             </div>
             <div class="flex items-center gap-3">
-                <span class="inline-flex items-center px-3.5 py-1.5 rounded-full text-xs font-semibold bg-sky-50 text-[#00407A] border border-sky-200">
+                <span id="modeBadge" class="inline-flex items-center px-3.5 py-1.5 rounded-full text-xs font-semibold bg-sky-50 text-[#00407A] border border-sky-200">
                     <span class="w-2 h-2 mr-2 bg-[#70B035] rounded-full animate-pulse"></span> Admin Mode
                 </span>
             </div>
@@ -359,20 +365,25 @@
 
     <!-- Application Script -->
     <script>
-        // โหลดข้อมูลที่แชร์มาจาก URL (ถ้ามี) แล้วบันทึกลง LocalStorage
+        let isSharedMode = false;
+
+        // อ่านข้อมูลที่แชร์มาจาก URL บีบอัด LZ-String (ถ้ามี)
         function loadInitialData() {
             const urlParams = new URLSearchParams(window.location.search);
-            const encodedData = urlParams.get('data');
-            if (encodedData) {
+            const compressedData = urlParams.get('data');
+            if (compressedData) {
                 try {
-                    const decodedJson = decodeURIComponent(atob(encodedData));
-                    const parsedJobs = JSON.parse(decodedJson);
-                    if (Array.isArray(parsedJobs) && parsedJobs.length > 0) {
-                        localStorage.setItem('common_frame_jobs_data', JSON.stringify(parsedJobs));
-                        return parsedJobs;
+                    const decompressed = LZString.decompressFromEncodedURIComponent(compressedData);
+                    if (decompressed) {
+                        const parsedJobs = JSON.parse(decompressed);
+                        if (Array.isArray(parsedJobs) && parsedJobs.length > 0) {
+                            localStorage.setItem('common_frame_jobs_data', JSON.stringify(parsedJobs));
+                            isSharedMode = true;
+                            return parsedJobs;
+                        }
                     }
                 } catch (e) {
-                    console.error('Error parsing shared data:', e);
+                    console.error('Error parsing LZ compressed data:', e);
                 }
             }
             return JSON.parse(localStorage.getItem('common_frame_jobs_data')) || [];
@@ -393,6 +404,17 @@
         }
 
         document.addEventListener('DOMContentLoaded', () => {
+            // หากอยู่ในโหมดเข้าผ่านลิงก์แชร์ ให้เปลี่ยน Badge และซ่อนปุ่มแชร์ซ้ำ
+            if (isSharedMode) {
+                const badge = document.getElementById('modeBadge');
+                if (badge) {
+                    badge.innerHTML = '<span class="w-2 h-2 mr-2 bg-sky-500 rounded-full"></span> Shared View Mode';
+                    badge.className = 'inline-flex items-center px-3.5 py-1.5 rounded-full text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-200';
+                }
+                const btnShare = document.getElementById('btnMainShare');
+                if (btnShare) btnShare.classList.add('hidden');
+            }
+
             setViewMode('detailed');
             updateDashboard();
         });
@@ -869,7 +891,7 @@
             });
         }
 
-        // ระบบเข้ารหัสแชร์ข้อมูลผ่าน URL + QR Code
+        // เข้ารหัสบีบอัด LZ-String ฝังลงใน URL + QR Code
         function openShareModal() {
             if (jobs.length === 0) {
                 alert('ยังไม่มีข้อมูลให้แชร์ กรุณาเพิ่มรายการงานก่อนครับ');
@@ -877,9 +899,9 @@
             }
 
             const jsonStr = JSON.stringify(jobs);
-            const encodedData = btoa(encodeURIComponent(jsonStr));
+            const compressed = LZString.compressToEncodedURIComponent(jsonStr);
             const baseUrl = window.location.origin + window.location.pathname;
-            const fullShareUrl = `${baseUrl}?data=${encodedData}`;
+            const fullShareUrl = `${baseUrl}?data=${compressed}`;
 
             document.getElementById('shareUrlInput').value = fullShareUrl;
             document.getElementById('copyAlert').classList.add('hidden');
@@ -997,7 +1019,7 @@
             }
         }
 
-        // ฟังก์ชัน Export PDF แบบสวยงาม พอดีหน้ากระดาษ ไม่ตัดครึ่งตาราง
+        // Export PDF แบบแบ่งหน้าสวยงาม
         function exportToPDF() {
             renderTable(true);
 
