@@ -16,6 +16,8 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <!-- QRCode.js -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <!-- LZ-String Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lz-string/1.4.4/lz-string.min.js"></script>
     <!-- Google Fonts - Prompt -->
     <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
@@ -44,8 +46,8 @@
     <header class="bg-[#00407A] text-white shadow-md sticky top-0 z-30 no-print">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
             <div class="flex items-center space-x-3">
-                <!-- โลโก้ คุณมาดี -->
-                <div class="relative w-11 h-11 rounded-full overflow-hidden border-2 border-[#00A3E0] shadow-inner bg-white shrink-0">
+                <!-- โลโก้ คุณมาดี (เสื้อคลุมฟ้า) -->
+                <div class="relative w-11 h-11 rounded-full overflow-hidden border-2 border-[#FFCC00] shadow-md bg-white shrink-0">
                     <img src="https://lh3.googleusercontent.com/d/1X5X8x6N3Mv4m7t3Z6x5_9a8B7C6v5D4E" alt="คุณมาดี" class="w-full h-full object-cover object-top" onerror="this.onerror=null; this.src='https://ui-avatars.com/api/?name=Ma-Dee&background=00A3E0&color=fff';">
                 </div>
                 <div>
@@ -57,7 +59,7 @@
             <!-- Actions Header -->
             <div class="flex items-center space-x-2">
                 <!-- ปุ่ม นำเข้าข้อมูล (.xlsx/.csv) -->
-                <button onclick="document.getElementById('importFileInput').click()" class="bg-[#0066C2] hover:bg-[#00407A] text-white text-xs sm:text-sm font-medium px-3 py-2 rounded-xl transition flex items-center gap-1.5 shadow-sm" title="นำเข้าไฟล์สำรองข้อมูล (.xlsx หรือ .csv)">
+                <button id="btnImport" onclick="document.getElementById('importFileInput').click()" class="bg-[#0066C2] hover:bg-[#00407A] text-white text-xs sm:text-sm font-medium px-3 py-2 rounded-xl transition flex items-center gap-1.5 shadow-sm" title="นำเข้าไฟล์สำรองข้อมูล (.xlsx หรือ .csv)">
                     <i class="fa-solid fa-file-import text-amber-300"></i> <span class="hidden sm:inline">นำเข้าข้อมูล (.xlsx/.csv)</span>
                 </button>
                 <input type="file" id="importFileInput" accept=".xlsx, .xls, .csv" onchange="importExcelData(event)" class="hidden">
@@ -78,7 +80,7 @@
                 </button>
 
                 <!-- ปุ่ม เพิ่มงาน -->
-                <button onclick="openModal()" class="bg-[#70B035] hover:bg-[#5a9028] text-white text-xs sm:text-sm font-bold px-3.5 py-2 rounded-xl transition flex items-center gap-1.5 shadow-md ml-1">
+                <button id="btnAddJob" onclick="openModal()" class="bg-[#70B035] hover:bg-[#5a9028] text-white text-xs sm:text-sm font-bold px-3.5 py-2 rounded-xl transition flex items-center gap-1.5 shadow-md ml-1">
                     <i class="fa-solid fa-plus"></i> เพิ่มงาน
                 </button>
             </div>
@@ -222,7 +224,7 @@
                 <table class="w-full text-left text-sm text-slate-600">
                     <thead class="bg-[#00407A]/5 text-xs text-[#00407A] uppercase font-bold border-b border-slate-200">
                         <tr>
-                            <th class="px-3 py-4 text-center no-print" style="width: 70px;">ลำดับ</th>
+                            <th class="px-3 py-4 text-center no-print col-manage" style="width: 70px;">ลำดับ</th>
                             <th class="px-4 py-4">อำเภอ</th>
                             <th class="px-4 py-4">อปท.</th>
                             <th class="px-5 py-4 text-center">Control ที่ต้องปรับปรุง</th>
@@ -231,7 +233,7 @@
                             <th class="px-4 py-4 text-center">งานทั้งหมด</th>
                             <th class="px-4 py-4">ความคืบหน้า</th>
                             <th class="px-4 py-4">ผู้รับผิดชอบ</th>
-                            <th class="px-4 py-4 text-center no-print">จัดการ</th>
+                            <th class="px-4 py-4 text-center no-print col-manage">จัดการ</th>
                         </tr>
                     </thead>
                     <tbody id="tableBody" class="divide-y divide-slate-100">
@@ -341,11 +343,11 @@
 
             <div class="flex flex-col items-center justify-center p-4 bg-sky-50/60 rounded-2xl border border-sky-100">
                 <div id="qrcode" class="p-2 bg-white rounded-xl shadow-sm border border-slate-100"></div>
-                <p class="text-[11px] text-slate-500 mt-2.5">สแกน QR Code เพื่อเปิดใช้งานระบบ</p>
+                <p class="text-[11px] text-slate-500 mt-2.5">สแกนเพื่อเปิดดูรายงานข้อมูล (โหมดอ่านอย่างเดียว)</p>
             </div>
 
             <div class="space-y-1.5 text-left">
-                <label class="text-xs font-semibold text-slate-700">ลิงก์เข้าใช้งานระบบ:</label>
+                <label class="text-xs font-semibold text-slate-700">ลิงก์เข้าชมรายงานข้อมูล:</label>
                 <div class="flex items-center gap-1.5">
                     <input type="text" id="shareUrlInput" readonly class="w-full text-xs px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-600 focus:outline-none">
                     <button onclick="copyShareUrl()" class="bg-[#0066C2] hover:bg-[#00407A] text-white text-xs font-medium px-3 py-2 rounded-xl transition flex items-center gap-1 whitespace-nowrap shadow-sm">
@@ -363,7 +365,30 @@
 
     <!-- Application Script -->
     <script>
-        let jobs = JSON.parse(localStorage.getItem('common_frame_jobs_data')) || [];
+        let isSharedMode = false;
+
+        // อ่านข้อมูลที่แชร์มาจาก URL Hash (#data=...)
+        function loadInitialData() {
+            const hash = window.location.hash;
+            if (hash && hash.startsWith('#data=')) {
+                try {
+                    const compressedData = hash.replace('#data=', '');
+                    const decompressed = LZString.decompressFromEncodedURIComponent(compressedData);
+                    if (decompressed) {
+                        const parsedJobs = JSON.parse(decompressed);
+                        if (Array.isArray(parsedJobs)) {
+                            isSharedMode = true;
+                            return parsedJobs;
+                        }
+                    }
+                } catch (e) {
+                    console.error('Error parsing LZ compressed hash data:', e);
+                }
+            }
+            return JSON.parse(localStorage.getItem('common_frame_jobs_data')) || [];
+        }
+
+        let jobs = loadInitialData();
         let viewMode = 'detailed';
         let currentPage = 1;
         const itemsPerPage = 10;
@@ -373,11 +398,34 @@
         let qrCodeObj = null;
 
         function saveData() {
-            localStorage.setItem('common_frame_jobs_data', JSON.stringify(jobs));
+            if (!isSharedMode) {
+                localStorage.setItem('common_frame_jobs_data', JSON.stringify(jobs));
+            }
             updateDashboard();
         }
 
         document.addEventListener('DOMContentLoaded', () => {
+            // หากอยู่ในโหมดแชร์ (สแกน QR / เข้าผ่านลิงก์) ให้ปรับเป็นโหมดอ่านอย่างเดียว
+            if (isSharedMode) {
+                const badge = document.getElementById('modeBadge');
+                if (badge) {
+                    badge.innerHTML = '<i class="fa-solid fa-eye mr-1.5"></i> 👁️ โหมดดูข้อมูล (Read-Only)';
+                    badge.className = 'inline-flex items-center px-3.5 py-1.5 rounded-full text-xs font-semibold bg-amber-50 text-amber-800 border border-amber-200';
+                }
+                
+                // ซ่อนปุ่มที่ไม่เกี่ยวข้องในโหมดดูข้อมูล
+                const btnMainShare = document.getElementById('btnMainShare');
+                const btnAddJob = document.getElementById('btnAddJob');
+                const btnImport = document.getElementById('btnImport');
+                
+                if (btnMainShare) btnMainShare.classList.add('hidden');
+                if (btnAddJob) btnAddJob.classList.add('hidden');
+                if (btnImport) btnImport.classList.add('hidden');
+
+                // ซ่อนคอลัมน์จัดการในตาราง
+                document.querySelectorAll('.col-manage').forEach(el => el.classList.add('hidden'));
+            }
+
             setViewMode('detailed');
             updateDashboard();
         });
@@ -437,6 +485,7 @@
 
         // นำเข้าข้อมูลจากไฟล์ Excel (.xlsx) หรือ CSV (.csv)
         function importExcelData(event) {
+            if (isSharedMode) return;
             const file = event.target.files[0];
             if (!file) return;
 
@@ -534,6 +583,7 @@
         }
 
         function moveRow(index, direction) {
+            if (isSharedMode) return;
             const targetIndex = index + direction;
             if(targetIndex < 0 || targetIndex >= jobs.length) return;
             
@@ -806,12 +856,24 @@
                     `;
                 }
 
+                const actionColHTML = isSharedMode ? '' : `
+                    <td class="px-4 py-3 text-center space-x-1 no-print col-manage">
+                        <button onclick="editJob('${item.id}')" class="text-[#0066C2] hover:text-[#00407A] font-medium text-xs bg-sky-50 hover:bg-sky-100 px-2.5 py-1.5 rounded-lg transition border border-sky-200/50">
+                            <i class="fa-solid fa-pen"></i>
+                        </button>
+                        <button onclick="deleteJob('${item.id}')" class="text-rose-600 hover:text-rose-900 font-medium text-xs bg-rose-50 hover:bg-rose-100 px-2.5 py-1.5 rounded-lg transition border border-rose-100">
+                            <i class="fa-solid fa-trash"></i>
+                        </button>
+                    </td>
+                `;
+
                 const tr = document.createElement('tr');
                 tr.className = 'hover:bg-sky-50/50 transition text-xs border-b border-slate-100 pdf-page-break';
                 tr.innerHTML = `
-                    <td class="px-3 py-3 text-center no-print">
+                    <td class="px-3 py-3 text-center no-print col-manage">
                         <div class="flex items-center justify-center gap-1">
                             <span class="font-medium text-slate-400 text-xs w-4">${globalIndex + 1}</span>
+                            ${!isSharedMode ? `
                             <div class="flex flex-col">
                                 <button onclick="moveRow(${realIndex}, -1)" ${realIndex === 0 ? 'disabled class="text-slate-200 cursor-not-allowed"' : 'class="text-slate-400 hover:text-[#0066C2]"'}>
                                     <i class="fa-solid fa-caret-up text-xs"></i>
@@ -819,7 +881,7 @@
                                 <button onclick="moveRow(${realIndex}, 1)" ${realIndex === jobs.length - 1 ? 'disabled class="text-slate-200 cursor-not-allowed"' : 'class="text-slate-400 hover:text-[#0066C2]"'}>
                                     <i class="fa-solid fa-caret-down text-xs"></i>
                                 </button>
-                            </div>
+                            </div>` : ''}
                         </div>
                     </td>
                     <td class="px-4 py-3 font-semibold text-slate-800 text-xs sm:text-sm">${item.district}</td>
@@ -841,35 +903,36 @@
                         </div>
                     </td>
                     <td class="px-4 py-3 font-medium text-slate-600">${item.assignee || '-'}</td>
-                    <td class="px-4 py-3 text-center space-x-1 no-print">
-                        <button onclick="editJob('${item.id}')" class="text-[#0066C2] hover:text-[#00407A] font-medium text-xs bg-sky-50 hover:bg-sky-100 px-2.5 py-1.5 rounded-lg transition border border-sky-200/50">
-                            <i class="fa-solid fa-pen"></i>
-                        </button>
-                        <button onclick="deleteJob('${item.id}')" class="text-rose-600 hover:text-rose-900 font-medium text-xs bg-rose-50 hover:bg-rose-100 px-2.5 py-1.5 rounded-lg transition border border-rose-100">
-                            <i class="fa-solid fa-trash"></i>
-                        </button>
-                    </td>
+                    ${actionColHTML}
                 `;
                 tbody.appendChild(tr);
             });
         }
 
-        // ระบบแชร์ลิงก์ URL สั้น คลีน ปลอดภัย 100%
+        // สร้าง URL Hash #data=... ปลอดภัย 100% ไม่ถูกบล็อก และเปิดดูได้ทันที
         function openShareModal() {
-            const cleanUrl = window.location.origin + window.location.pathname;
+            if (jobs.length === 0) {
+                alert('ยังไม่มีข้อมูลให้แชร์ กรุณาเพิ่มรายการงานก่อนครับ');
+                return;
+            }
 
-            document.getElementById('shareUrlInput').value = cleanUrl;
+            const jsonStr = JSON.stringify(jobs);
+            const compressed = LZString.compressToEncodedURIComponent(jsonStr);
+            const baseUrl = window.location.origin + window.location.pathname;
+            const fullShareUrl = `${baseUrl}#data=${compressed}`;
+
+            document.getElementById('shareUrlInput').value = fullShareUrl;
             document.getElementById('copyAlert').classList.add('hidden');
 
             const qrContainer = document.getElementById('qrcode');
             qrContainer.innerHTML = '';
             qrCodeObj = new QRCode(qrContainer, {
-                text: cleanUrl,
-                width: 160,
-                height: 160,
+                text: fullShareUrl,
+                width: 150,
+                height: 150,
                 colorDark : "#00407A",
                 colorLight : "#ffffff",
-                correctLevel : QRCode.CorrectLevel.M
+                correctLevel : QRCode.CorrectLevel.L
             });
 
             document.getElementById('shareModal').classList.remove('hidden');
@@ -889,6 +952,7 @@
         }
 
         function openModal() {
+            if (isSharedMode) return;
             document.getElementById('modalTitle').innerText = 'เพิ่มรายการงานใหม่';
             document.getElementById('jobForm').reset();
             document.getElementById('jobId').value = '';
@@ -902,6 +966,8 @@
 
         function handleFormSubmit(e) {
             e.preventDefault();
+            if (isSharedMode) return;
+
             const id = document.getElementById('jobId').value;
             const district = document.getElementById('districtInput').value.trim();
             const opt = document.getElementById('optInput').value.trim();
@@ -947,6 +1013,7 @@
         }
 
         function editJob(id) {
+            if (isSharedMode) return;
             const item = jobs.find(j => j.id === id);
             if(!item) return;
 
@@ -968,13 +1035,14 @@
         }
 
         function deleteJob(id) {
+            if (isSharedMode) return;
             if(confirm('คุณแน่ใจหรือไม่ว่าต้องการลบรายการนี้?')) {
                 jobs = jobs.filter(j => j.id !== id);
                 saveData();
             }
         }
 
-        // Export PDF แบบแบ่งหน้าสวยงาม
+        // Export PDF
         function exportToPDF() {
             renderTable(true);
 
