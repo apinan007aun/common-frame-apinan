@@ -328,11 +328,11 @@
 
             <div class="flex flex-col items-center justify-center p-4 bg-sky-50/60 rounded-2xl border border-sky-100">
                 <div id="qrcode" class="p-2 bg-white rounded-xl shadow-sm border border-slate-100"></div>
-                <p class="text-[11px] text-slate-500 mt-2.5">สแกน QR Code เพื่อเปิดใช้งานบนมือถือ</p>
+                <p class="text-[11px] text-slate-500 mt-2.5">สแกน QR Code เพื่อเปิดดูข้อมูลพร้อมยอดล่าสุด</p>
             </div>
 
             <div class="space-y-1.5 text-left">
-                <label class="text-xs font-semibold text-slate-700">ลิงก์เข้าใช้งานเว็บไซต์:</label>
+                <label class="text-xs font-semibold text-slate-700">ลิงก์เข้าใช้งานพร้อมยอดข้อมูล:</label>
                 <div class="flex items-center gap-1.5">
                     <input type="text" id="shareUrlInput" readonly class="w-full text-xs px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-600 focus:outline-none">
                     <button onclick="copyShareUrl()" class="bg-[#0066C2] hover:bg-[#00407A] text-white text-xs font-medium px-3 py-2 rounded-xl transition flex items-center gap-1 whitespace-nowrap shadow-sm">
@@ -350,7 +350,26 @@
 
     <!-- Application Script -->
     <script>
-        let jobs = JSON.parse(localStorage.getItem('common_frame_jobs_data')) || [];
+        // อ่านข้อมูลที่ฝังไว้จาก URL Parameters (ถ้ามี)
+        function loadInitialData() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const encodedData = urlParams.get('data');
+            if (encodedData) {
+                try {
+                    const decodedJson = decodeURIComponent(escape(atob(encodedData)));
+                    const parsedJobs = JSON.parse(decodedJson);
+                    if (Array.isArray(parsedJobs) && parsedJobs.length > 0) {
+                        localStorage.setItem('common_frame_jobs_data', JSON.stringify(parsedJobs));
+                        return parsedJobs;
+                    }
+                } catch (e) {
+                    console.error('Error parsing shared data:', e);
+                }
+            }
+            return JSON.parse(localStorage.getItem('common_frame_jobs_data')) || [];
+        }
+
+        let jobs = loadInitialData();
         let viewMode = 'detailed';
         let currentPage = 1;
         const itemsPerPage = 10;
@@ -697,7 +716,6 @@
             });
         }
 
-        // renderTable แบบรองรับทั้ง Pagination ปกติ และโหมด PDF
         function renderTable(renderAllForPdf = false) {
             const tbody = document.getElementById('tableBody');
             const searchVal = document.getElementById('searchInput').value.toLowerCase().trim();
@@ -720,7 +738,7 @@
             let startIndex = 0;
 
             if (renderAllForPdf) {
-                displayJobs = filteredJobs; // ดึงทุกรายการเพื่อพิมพ์ลง PDF
+                displayJobs = filteredJobs;
             } else {
                 if (currentPage > totalPages) currentPage = totalPages;
                 if (currentPage < 1) currentPage = 1;
@@ -729,7 +747,6 @@
                 const endIndex = Math.min(startIndex + itemsPerPage, totalItems);
                 displayJobs = filteredJobs.slice(startIndex, endIndex);
 
-                // Update Pagination UI
                 document.getElementById('paginationInfo').innerText = totalItems > 0 
                     ? `แสดง ${startIndex + 1} - ${endIndex} จากทั้งหมด ${totalItems} รายการ`
                     : 'ยังไม่มีข้อมูลในระบบ';
@@ -843,21 +860,30 @@
             });
         }
 
-        // ระบบแชร์ลิงก์และ QR Code แบบดั้งเดิม
+        // ฝังข้อมูลทั้งหมดลงใน URL แชร์ + QR Code
         function openShareModal() {
-            const currentUrl = window.location.href.split('?')[0];
-            document.getElementById('shareUrlInput').value = currentUrl;
+            if (jobs.length === 0) {
+                alert('ยังไม่มีข้อมูลให้แชร์ กรุณาเพิ่มรายการงานก่อนครับ');
+                return;
+            }
+
+            const jsonStr = JSON.stringify(jobs);
+            const encodedData = btoa(unescape(encodeURIComponent(jsonStr)));
+            const baseUrl = window.location.origin + window.location.pathname;
+            const fullShareUrl = `${baseUrl}?data=${encodedData}`;
+
+            document.getElementById('shareUrlInput').value = fullShareUrl;
             document.getElementById('copyAlert').classList.add('hidden');
 
             const qrContainer = document.getElementById('qrcode');
             qrContainer.innerHTML = '';
             qrCodeObj = new QRCode(qrContainer, {
-                text: currentUrl,
+                text: fullShareUrl,
                 width: 140,
                 height: 140,
                 colorDark : "#00407A",
                 colorLight : "#ffffff",
-                correctLevel : QRCode.CorrectLevel.H
+                correctLevel : QRCode.CorrectLevel.L
             });
 
             document.getElementById('shareModal').classList.remove('hidden');
@@ -962,9 +988,7 @@
             }
         }
 
-        // Export PDF โดยดึงทุกรายการข้อมูลไม่ให้ตกหล่น
         function exportToPDF() {
-            // 1. ดึงข้อมูลทั้งหมดมาแสดงในตารางชั่วคราว
             renderTable(true);
 
             const element = document.getElementById('dashboard-content');
@@ -977,7 +1001,6 @@
             };
 
             html2pdf().set(opt).from(element).save().then(() => {
-                // 2. เมื่อสร้าง PDF เสร็จ สลับกลับมาแสดงผล 10 รายการ/หน้าตามเดิม
                 renderTable(false);
             });
         }
