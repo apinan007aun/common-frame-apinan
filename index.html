@@ -16,8 +16,6 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <!-- QRCode.js -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-    <!-- LZ-String Library สำหรับบีบอัด URL -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/lz-string/1.4.4/lz-string.min.js"></script>
     <!-- Google Fonts - Prompt -->
     <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
@@ -46,7 +44,7 @@
     <header class="bg-[#00407A] text-white shadow-md sticky top-0 z-30 no-print">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
             <div class="flex items-center space-x-3">
-                <!-- โลโก้ รูปมาสคอตคุณมาดี -->
+                <!-- โลโก้ คุณมาดี -->
                 <div class="relative w-11 h-11 rounded-full overflow-hidden border-2 border-[#00A3E0] shadow-inner bg-white shrink-0">
                     <img src="https://lh3.googleusercontent.com/d/1X5X8x6N3Mv4m7t3Z6x5_9a8B7C6v5D4E" alt="คุณมาดี" class="w-full h-full object-cover object-top" onerror="this.onerror=null; this.src='https://ui-avatars.com/api/?name=Ma-Dee&background=00A3E0&color=fff';">
                 </div>
@@ -74,7 +72,7 @@
                     <i class="fa-solid fa-file-pdf text-rose-300"></i> <span class="hidden sm:inline">PDF</span>
                 </button>
 
-                <!-- ปุ่ม แชร์ QR (จะซ่อนอัตโนมัติหากผู้ใช้งานเปิดผ่านลิงก์แชร์) -->
+                <!-- ปุ่ม แชร์ QR -->
                 <button id="btnMainShare" onclick="openShareModal()" class="bg-[#FFCC00] hover:bg-[#e6b800] text-slate-900 text-xs sm:text-sm font-bold px-3 py-2 rounded-xl transition flex items-center gap-1.5 shadow-md">
                     <i class="fa-solid fa-share-nodes text-[#00407A]"></i> แชร์ลิงก์ / QR
                 </button>
@@ -343,11 +341,11 @@
 
             <div class="flex flex-col items-center justify-center p-4 bg-sky-50/60 rounded-2xl border border-sky-100">
                 <div id="qrcode" class="p-2 bg-white rounded-xl shadow-sm border border-slate-100"></div>
-                <p class="text-[11px] text-slate-500 mt-2.5">สแกน QR Code เพื่อเปิดดูข้อมูลพร้อมยอดล่าสุด</p>
+                <p class="text-[11px] text-slate-500 mt-2.5">สแกน QR Code เพื่อเปิดใช้งานระบบ</p>
             </div>
 
             <div class="space-y-1.5 text-left">
-                <label class="text-xs font-semibold text-slate-700">ลิงก์เข้าใช้งานพร้อมยอดข้อมูล:</label>
+                <label class="text-xs font-semibold text-slate-700">ลิงก์เข้าใช้งานระบบ:</label>
                 <div class="flex items-center gap-1.5">
                     <input type="text" id="shareUrlInput" readonly class="w-full text-xs px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-600 focus:outline-none">
                     <button onclick="copyShareUrl()" class="bg-[#0066C2] hover:bg-[#00407A] text-white text-xs font-medium px-3 py-2 rounded-xl transition flex items-center gap-1 whitespace-nowrap shadow-sm">
@@ -365,31 +363,7 @@
 
     <!-- Application Script -->
     <script>
-        let isSharedMode = false;
-
-        // อ่านข้อมูลที่แชร์มาจาก URL บีบอัด LZ-String (ถ้ามี)
-        function loadInitialData() {
-            const urlParams = new URLSearchParams(window.location.search);
-            const compressedData = urlParams.get('data');
-            if (compressedData) {
-                try {
-                    const decompressed = LZString.decompressFromEncodedURIComponent(compressedData);
-                    if (decompressed) {
-                        const parsedJobs = JSON.parse(decompressed);
-                        if (Array.isArray(parsedJobs) && parsedJobs.length > 0) {
-                            localStorage.setItem('common_frame_jobs_data', JSON.stringify(parsedJobs));
-                            isSharedMode = true;
-                            return parsedJobs;
-                        }
-                    }
-                } catch (e) {
-                    console.error('Error parsing LZ compressed data:', e);
-                }
-            }
-            return JSON.parse(localStorage.getItem('common_frame_jobs_data')) || [];
-        }
-
-        let jobs = loadInitialData();
+        let jobs = JSON.parse(localStorage.getItem('common_frame_jobs_data')) || [];
         let viewMode = 'detailed';
         let currentPage = 1;
         const itemsPerPage = 10;
@@ -404,17 +378,6 @@
         }
 
         document.addEventListener('DOMContentLoaded', () => {
-            // หากอยู่ในโหมดเข้าผ่านลิงก์แชร์ ให้เปลี่ยน Badge และซ่อนปุ่มแชร์ซ้ำ
-            if (isSharedMode) {
-                const badge = document.getElementById('modeBadge');
-                if (badge) {
-                    badge.innerHTML = '<span class="w-2 h-2 mr-2 bg-sky-500 rounded-full"></span> Shared View Mode';
-                    badge.className = 'inline-flex items-center px-3.5 py-1.5 rounded-full text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-200';
-                }
-                const btnShare = document.getElementById('btnMainShare');
-                if (btnShare) btnShare.classList.add('hidden');
-            }
-
             setViewMode('detailed');
             updateDashboard();
         });
@@ -891,30 +854,22 @@
             });
         }
 
-        // เข้ารหัสบีบอัด LZ-String ฝังลงใน URL + QR Code
+        // ระบบแชร์ลิงก์ URL สั้น คลีน ปลอดภัย 100%
         function openShareModal() {
-            if (jobs.length === 0) {
-                alert('ยังไม่มีข้อมูลให้แชร์ กรุณาเพิ่มรายการงานก่อนครับ');
-                return;
-            }
+            const cleanUrl = window.location.origin + window.location.pathname;
 
-            const jsonStr = JSON.stringify(jobs);
-            const compressed = LZString.compressToEncodedURIComponent(jsonStr);
-            const baseUrl = window.location.origin + window.location.pathname;
-            const fullShareUrl = `${baseUrl}?data=${compressed}`;
-
-            document.getElementById('shareUrlInput').value = fullShareUrl;
+            document.getElementById('shareUrlInput').value = cleanUrl;
             document.getElementById('copyAlert').classList.add('hidden');
 
             const qrContainer = document.getElementById('qrcode');
             qrContainer.innerHTML = '';
             qrCodeObj = new QRCode(qrContainer, {
-                text: fullShareUrl,
-                width: 140,
-                height: 140,
+                text: cleanUrl,
+                width: 160,
+                height: 160,
                 colorDark : "#00407A",
                 colorLight : "#ffffff",
-                correctLevel : QRCode.CorrectLevel.L
+                correctLevel : QRCode.CorrectLevel.M
             });
 
             document.getElementById('shareModal').classList.remove('hidden');
