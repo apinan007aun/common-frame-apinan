@@ -95,48 +95,59 @@
         </div>
 
         <!-- Metric KPI Cards -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-            <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200/70 border-l-4 border-l-[#00407A] flex items-center justify-between">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+            <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200/70 border-l-4 border-l-[#00407A] flex items-center justify-between">
                 <div>
                     <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">งานทั้งหมดที่ได้รับ</p>
-                    <h3 id="kpi-total" class="text-3xl font-extrabold text-[#00407A] mt-1">0</h3>
-                    <p class="text-xs text-slate-500 mt-1">Control + ร้านค้า</p>
+                    <h3 id="kpi-total" class="text-2xl font-extrabold text-[#00407A] mt-1">0</h3>
+                    <p class="text-[11px] text-slate-500 mt-0.5">Control + ร้านค้า</p>
                 </div>
-                <div class="w-12 h-12 bg-sky-50 text-[#00407A] rounded-2xl flex items-center justify-center text-xl">
+                <div class="w-10 h-10 bg-sky-50 text-[#00407A] rounded-xl flex items-center justify-center text-lg">
                     <i class="fa-solid fa-folder-open"></i>
                 </div>
             </div>
 
-            <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200/70 border-l-4 border-l-[#0066C2] flex items-center justify-between">
+            <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200/70 border-l-4 border-l-[#0066C2] flex items-center justify-between">
                 <div>
-                    <p class="text-xs font-semibold text-[#0066C2] uppercase tracking-wider">Control ที่ต้องปรับปรุง</p>
-                    <h3 id="kpi-control" class="text-3xl font-extrabold text-[#0066C2] mt-1">0</h3>
-                    <p id="kpi-control-completed" class="text-xs text-[#70B035] font-semibold mt-1">เสร็จแล้ว 0 รายการ</p>
+                    <p class="text-xs font-semibold text-[#0066C2] uppercase tracking-wider">Control ปรับปรุง</p>
+                    <h3 id="kpi-control" class="text-2xl font-extrabold text-[#0066C2] mt-1">0</h3>
+                    <p id="kpi-control-completed" class="text-[11px] text-[#70B035] font-semibold mt-0.5">เสร็จแล้ว 0</p>
                 </div>
-                <div class="w-12 h-12 bg-blue-50 text-[#0066C2] rounded-2xl flex items-center justify-center text-xl">
+                <div class="w-10 h-10 bg-blue-50 text-[#0066C2] rounded-xl flex items-center justify-center text-lg">
                     <i class="fa-solid fa-sliders"></i>
                 </div>
             </div>
 
-            <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200/70 border-l-4 border-l-[#00A3E0] flex items-center justify-between">
+            <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200/70 border-l-4 border-l-[#00A3E0] flex items-center justify-between">
                 <div>
-                    <p class="text-xs font-semibold text-[#0082b3] uppercase tracking-wider">ร้านค้าที่ต้องบันทึกเพิ่ม</p>
-                    <h3 id="kpi-stores" class="text-3xl font-extrabold text-[#00A3E0] mt-1">0</h3>
-                    <p id="kpi-stores-completed" class="text-xs text-[#70B035] font-semibold mt-1">เสร็จแล้ว 0 รายการ</p>
+                    <p class="text-xs font-semibold text-[#0082b3] uppercase tracking-wider">ร้านค้าบันทึกเพิ่ม</p>
+                    <h3 id="kpi-stores" class="text-2xl font-extrabold text-[#00A3E0] mt-1">0</h3>
+                    <p id="kpi-stores-completed" class="text-[11px] text-[#70B035] font-semibold mt-0.5">เสร็จแล้ว 0</p>
                 </div>
-                <div class="w-12 h-12 bg-cyan-50 text-[#00A3E0] rounded-2xl flex items-center justify-center text-xl">
+                <div class="w-10 h-10 bg-cyan-50 text-[#00A3E0] rounded-xl flex items-center justify-center text-lg">
                     <i class="fa-solid fa-store"></i>
                 </div>
             </div>
 
-            <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200/70 border-l-4 border-l-[#70B035] flex items-center justify-between">
+            <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200/70 border-l-4 border-l-[#70B035] flex items-center justify-between">
                 <div>
-                    <p class="text-xs font-semibold text-[#528325] uppercase tracking-wider">รวมบันทึกงาน (เสร็จแล้ว)</p>
-                    <h3 id="kpi-total-completed" class="text-3xl font-extrabold text-[#70B035] mt-1">0</h3>
-                    <p id="kpi-progress-percent" class="text-xs text-slate-500 font-medium mt-1">ความคืบหน้า 0%</p>
+                    <p class="text-xs font-semibold text-[#528325] uppercase tracking-wider">รวมบันทึกงานเสร็จ</p>
+                    <h3 id="kpi-total-completed" class="text-2xl font-extrabold text-[#70B035] mt-1">0</h3>
+                    <p id="kpi-progress-percent" class="text-[11px] text-slate-500 font-medium mt-0.5">ความคืบหน้า 0%</p>
                 </div>
-                <div class="w-12 h-12 bg-emerald-50 text-[#70B035] rounded-2xl flex items-center justify-center text-xl">
+                <div class="w-10 h-10 bg-emerald-50 text-[#70B035] rounded-xl flex items-center justify-center text-lg">
                     <i class="fa-solid fa-circle-check"></i>
+                </div>
+            </div>
+
+            <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200/70 border-l-4 border-l-emerald-600 flex items-center justify-between">
+                <div>
+                    <p class="text-xs font-semibold text-emerald-700 uppercase tracking-wider">เสร็จสมบูรณ์ 100%</p>
+                    <h3 id="kpi-complete-100" class="text-2xl font-extrabold text-emerald-600 mt-1">0 / 0</h3>
+                    <p id="kpi-complete-100-desc" class="text-[11px] text-emerald-700 font-semibold mt-0.5">รายการ อปท.</p>
+                </div>
+                <div class="w-10 h-10 bg-emerald-100 text-emerald-700 rounded-xl flex items-center justify-center text-lg">
+                    <i class="fa-solid fa-trophy"></i>
                 </div>
             </div>
         </div>
@@ -172,16 +183,15 @@
             <div class="p-6 border-b border-slate-100 flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
                     <h3 class="font-bold text-[#00407A] text-base">ตารางบันทึกยอดงานราย อำเภอ / อปท.</h3>
-                    <p class="text-xs text-slate-500 mt-0.5">จัดการ แก้ไข จัดลำดับ และสลับรูปแบบการแสดงผล (แสดงผล 10 รายการ/หน้า)</p>
                 </div>
                 
                 <div class="flex flex-wrap items-center gap-3 no-print">
                     <div class="bg-slate-100 p-1 rounded-xl flex items-center border border-slate-200">
-                        <button onclick="setViewMode('compact')" id="btn-mode-compact" class="px-3 py-1.5 text-xs font-semibold rounded-lg transition shadow-sm bg-white text-[#00407A]">
-                            <i class="fa-solid fa-table-list mr-1"></i> สรุปตัวเลข
-                        </button>
-                        <button onclick="setViewMode('detailed')" id="btn-mode-detailed" class="px-3 py-1.5 text-xs font-semibold rounded-lg transition text-slate-500 hover:text-slate-800">
+                        <button onclick="setViewMode('detailed')" id="btn-mode-detailed" class="px-3 py-1.5 text-xs font-semibold rounded-lg transition shadow-sm bg-white text-[#00407A]">
                             <i class="fa-solid fa-table-cells mr-1"></i> การ์ดย่อย
+                        </button>
+                        <button onclick="setViewMode('compact')" id="btn-mode-compact" class="px-3 py-1.5 text-xs font-semibold rounded-lg transition text-slate-500 hover:text-slate-800">
+                            <i class="fa-solid fa-table-list mr-1"></i> สรุปตัวเลข
                         </button>
                     </div>
 
@@ -341,7 +351,7 @@
     <!-- Application Script -->
     <script>
         let jobs = JSON.parse(localStorage.getItem('common_frame_jobs_data')) || [];
-        let viewMode = 'compact';
+        let viewMode = 'detailed';
         let currentPage = 1;
         const itemsPerPage = 10;
 
@@ -355,6 +365,7 @@
         }
 
         document.addEventListener('DOMContentLoaded', () => {
+            setViewMode('detailed');
             updateDashboard();
         });
 
@@ -531,12 +542,24 @@
         function renderKPIs() {
             let totalControl = 0, completedControl = 0;
             let totalStore = 0, completedStore = 0;
+            let complete100Count = 0;
 
             jobs.forEach(j => {
-                totalControl += Number(j.controlTotal || 0);
-                completedControl += Number(j.controlCompleted || 0);
-                totalStore += Number(j.storeTotal || 0);
-                completedStore += Number(j.storeCompleted || 0);
+                const cTot = Number(j.controlTotal || 0);
+                const cComp = Number(j.controlCompleted || 0);
+                const sTot = Number(j.storeTotal || 0);
+                const sComp = Number(j.storeCompleted || 0);
+
+                totalControl += cTot;
+                completedControl += cComp;
+                totalStore += sTot;
+                completedStore += sComp;
+
+                const grandTot = cTot + sTot;
+                const grandComp = cComp + sComp;
+                if (grandTot > 0 && grandComp >= grandTot) {
+                    complete100Count++;
+                }
             });
 
             const grandTotal = totalControl + totalStore;
@@ -545,17 +568,19 @@
 
             document.getElementById('kpi-total').innerText = grandTotal.toLocaleString();
             document.getElementById('kpi-control').innerText = totalControl.toLocaleString();
-            document.getElementById('kpi-control-completed').innerText = `เสร็จแล้ว ${completedControl.toLocaleString()} รายการ`;
+            document.getElementById('kpi-control-completed').innerText = `เสร็จแล้ว ${completedControl.toLocaleString()}`;
             
             document.getElementById('kpi-stores').innerText = totalStore.toLocaleString();
-            document.getElementById('kpi-stores-completed').innerText = `เสร็จแล้ว ${completedStore.toLocaleString()} รายการ`;
+            document.getElementById('kpi-stores-completed').innerText = `เสร็จแล้ว ${completedStore.toLocaleString()}`;
 
             document.getElementById('kpi-total-completed').innerText = grandCompleted.toLocaleString();
             document.getElementById('kpi-progress-percent').innerText = `ความคืบหน้าภาพรวม ${overallPct}%`;
+
+            document.getElementById('kpi-complete-100').innerText = `${complete100Count} / ${jobs.length}`;
+            document.getElementById('kpi-complete-100-desc').innerText = jobs.length > 0 ? `เสร็จสมบูรณ์ ${Math.round((complete100Count/jobs.length)*100)}%` : 'ไม่มีข้อมูล';
         }
 
         function renderCharts() {
-            // 1. Bar Chart: แยกตามอำเภอ
             const districtMap = {};
             jobs.forEach(j => {
                 if(!districtMap[j.district]) {
@@ -604,7 +629,6 @@
                 }
             });
 
-            // 2. Doughnut Chart: ร้อยละของความสำเร็จ
             let totalAll = 0;
             let completedAll = 0;
 
@@ -673,7 +697,8 @@
             });
         }
 
-        function renderTable() {
+        // renderTable แบบรองรับทั้ง Pagination ปกติ และโหมด PDF
+        function renderTable(renderAllForPdf = false) {
             const tbody = document.getElementById('tableBody');
             const searchVal = document.getElementById('searchInput').value.toLowerCase().trim();
             const selectedDistrict = document.getElementById('districtFilter').value;
@@ -691,28 +716,35 @@
             const totalItems = filteredJobs.length;
             const totalPages = Math.ceil(totalItems / itemsPerPage) || 1;
 
-            if (currentPage > totalPages) currentPage = totalPages;
-            if (currentPage < 1) currentPage = 1;
+            let displayJobs = [];
+            let startIndex = 0;
 
-            const startIndex = (currentPage - 1) * itemsPerPage;
-            const endIndex = Math.min(startIndex + itemsPerPage, totalItems);
-            const paginatedJobs = filteredJobs.slice(startIndex, endIndex);
+            if (renderAllForPdf) {
+                displayJobs = filteredJobs; // ดึงทุกรายการเพื่อพิมพ์ลง PDF
+            } else {
+                if (currentPage > totalPages) currentPage = totalPages;
+                if (currentPage < 1) currentPage = 1;
 
-            // Update Pagination UI
-            document.getElementById('paginationInfo').innerText = totalItems > 0 
-                ? `แสดง ${startIndex + 1} - ${endIndex} จากทั้งหมด ${totalItems} รายการ`
-                : 'ยังไม่มีข้อมูลในระบบ';
-            document.getElementById('pageIndicator').innerText = `หน้า ${currentPage} / ${totalPages}`;
-            document.getElementById('btnPrevPage').disabled = (currentPage <= 1);
-            document.getElementById('btnNextPage').disabled = (currentPage >= totalPages);
+                startIndex = (currentPage - 1) * itemsPerPage;
+                const endIndex = Math.min(startIndex + itemsPerPage, totalItems);
+                displayJobs = filteredJobs.slice(startIndex, endIndex);
 
-            if(paginatedJobs.length === 0) {
+                // Update Pagination UI
+                document.getElementById('paginationInfo').innerText = totalItems > 0 
+                    ? `แสดง ${startIndex + 1} - ${endIndex} จากทั้งหมด ${totalItems} รายการ`
+                    : 'ยังไม่มีข้อมูลในระบบ';
+                document.getElementById('pageIndicator').innerText = `หน้า ${currentPage} / ${totalPages}`;
+                document.getElementById('btnPrevPage').disabled = (currentPage <= 1);
+                document.getElementById('btnNextPage').disabled = (currentPage >= totalPages);
+            }
+
+            if(displayJobs.length === 0) {
                 tbody.innerHTML = `<tr><td colspan="10" class="text-center py-8 text-slate-400">ยังไม่มีข้อมูลในระบบ หรือ ไม่พบข้อมูลที่ค้นหา</td></tr>`;
                 return;
             }
 
-            paginatedJobs.forEach((item, pageIdx) => {
-                const globalIndex = startIndex + pageIdx;
+            displayJobs.forEach((item, pageIdx) => {
+                const globalIndex = renderAllForPdf ? pageIdx : (startIndex + pageIdx);
                 const realIndex = jobs.findIndex(j => j.id === item.id);
                 const cTot = Number(item.controlTotal || 0);
                 const cComp = Number(item.controlCompleted || 0);
@@ -811,8 +843,9 @@
             });
         }
 
+        // ระบบแชร์ลิงก์และ QR Code แบบดั้งเดิม
         function openShareModal() {
-            const currentUrl = window.location.href;
+            const currentUrl = window.location.href.split('?')[0];
             document.getElementById('shareUrlInput').value = currentUrl;
             document.getElementById('copyAlert').classList.add('hidden');
 
@@ -929,7 +962,11 @@
             }
         }
 
+        // Export PDF โดยดึงทุกรายการข้อมูลไม่ให้ตกหล่น
         function exportToPDF() {
+            // 1. ดึงข้อมูลทั้งหมดมาแสดงในตารางชั่วคราว
+            renderTable(true);
+
             const element = document.getElementById('dashboard-content');
             const opt = {
                 margin:       0.2,
@@ -939,7 +976,10 @@
                 jsPDF:        { unit: 'in', format: 'a4', orientation: 'landscape' }
             };
 
-            html2pdf().set(opt).from(element).save();
+            html2pdf().set(opt).from(element).save().then(() => {
+                // 2. เมื่อสร้าง PDF เสร็จ สลับกลับมาแสดงผล 10 รายการ/หน้าตามเดิม
+                renderTable(false);
+            });
         }
     </script>
 </body>
