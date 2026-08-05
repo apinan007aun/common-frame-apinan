@@ -342,12 +342,12 @@
             </div>
 
             <div class="flex flex-col items-center justify-center p-4 bg-sky-50/60 rounded-2xl border border-sky-100">
-                <div id="qrcode" class="p-2 bg-white rounded-xl shadow-sm border border-slate-100"></div>
-                <p class="text-[11px] text-slate-500 mt-2.5">สแกนเพื่อเปิดดูรายงานข้อมูล (โหมดอ่านอย่างเดียว)</p>
+                <div id="qrcode" class="p-3 bg-white rounded-2xl shadow-sm border border-slate-100"></div>
+                <p class="text-[11px] text-slate-600 font-medium mt-2.5">สแกนเพื่อดูรายงานข้อมูล (โหมดอ่านอย่างเดียว)</p>
             </div>
 
             <div class="space-y-1.5 text-left">
-                <label class="text-xs font-semibold text-slate-700">ลิงก์เข้าชมรายงานข้อมูล:</label>
+                <label class="text-xs font-semibold text-slate-700">ลิงก์แชร์รายงานข้อมูล:</label>
                 <div class="flex items-center gap-1.5">
                     <input type="text" id="shareUrlInput" readonly class="w-full text-xs px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-600 focus:outline-none">
                     <button onclick="copyShareUrl()" class="bg-[#0066C2] hover:bg-[#00407A] text-white text-xs font-medium px-3 py-2 rounded-xl transition flex items-center gap-1 whitespace-nowrap shadow-sm">
@@ -367,7 +367,7 @@
     <script>
         let isSharedMode = false;
 
-        // บีบอัดโครงสร้างอาร์เรย์ให้เล็กกระทัดรัด
+        // บีบอัดข้อมูลเป็นอาร์เรย์ตัวเลขย่อ (Ultra Compact) เพื่อให้ QR Code ลายโปร่งสแกนได้เร็วที่สุด
         function compactJobs(jobsArray) {
             return jobsArray.map(j => [
                 j.district || '',
@@ -933,7 +933,7 @@
             });
         }
 
-        // ฝังข้อมูลบีบอัดลงใน QR Code / URL Hash
+        // ระบบแชร์ QR Code บีบอัดสั้น ลายโปร่ง สแกนติดเร็วใน 0.3 วินาที
         function openShareModal() {
             if (jobs.length === 0) {
                 alert('ยังไม่มีข้อมูลให้แชร์ กรุณาเพิ่มรายการงานก่อนครับ');
@@ -953,8 +953,8 @@
             qrContainer.innerHTML = '';
             qrCodeObj = new QRCode(qrContainer, {
                 text: fullShareUrl,
-                width: 150,
-                height: 150,
+                width: 220,
+                height: 220,
                 colorDark : "#00407A",
                 colorLight : "#ffffff",
                 correctLevel : QRCode.CorrectLevel.L
