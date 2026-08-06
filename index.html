@@ -309,7 +309,7 @@
 
     <!-- Application Script -->
     <script>
-        const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwYZlIjEn8NpAQR8xBc64IY8ciuWongPvbIRJh2MH2y5jK2A6pzf6OArzC_nwK_ZNWi/exec';
+        const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzJUlKlml8yxPBgoevSh97gbmeSEa7sQci8vgbhWXZ9NEVTsk-lq8JIrMNf689BZgcE/exec';
 
         let jobs = [];
         let viewMode = 'detailed';
@@ -362,21 +362,37 @@
         }
 
         async function saveData() {
-            if (isSharedViewMode) return;
-            localStorage.setItem('common_frame_jobs_data', JSON.stringify(jobs));
-            updateDashboard();
+    if (isSharedViewMode) return;
+    
+    // บันทึกลงเครื่องก่อนเพื่อความรวดเร็ว
+    localStorage.setItem('common_frame_jobs_data', JSON.stringify(jobs));
+    updateDashboard();
 
-            try {
-                await fetch(GOOGLE_SCRIPT_URL, {
-                    method: 'POST',
-                    mode: 'no-cors',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(jobs)
-                });
-            } catch (err) {
-                console.error("Error saving data to Google Sheets:", err);
-            }
+    // แสดงสถานะกำลังบันทึก
+    const syncStatus = document.getElementById('syncStatus');
+    if (syncStatus) {
+        syncStatus.innerHTML = '<span class="w-2 h-2 mr-2 bg-amber-500 rounded-full animate-ping"></span> กำลังบันทึกไป Google Sheets...';
+    }
+
+    try {
+        // ส่งข้อมูลแบบ text/plain เพื่อป้องกันปัญหา CORS Pre-flight ใน Apps Script
+        const response = await fetch(GOOGLE_SCRIPT_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+            body: JSON.stringify(jobs)
+        });
+
+        if (syncStatus) {
+            syncStatus.innerHTML = '<span class="w-2 h-2 mr-2 bg-[#70B035] rounded-full animate-pulse"></span> Google Sheets Connected (อัปเดตแล้ว)';
         }
+    } catch (err) {
+        console.error("Error saving data:", err);
+        if (syncStatus) {
+            syncStatus.innerHTML = '<span class="w-2 h-2 mr-2 bg-rose-500 rounded-full"></span> บันทึกลง Sheets ไม่สำเร็จ (เช็กเน็ต)';
+        }
+        alert('⚠️ ไม่สามารถส่งข้อมูลไปยัง Google Sheets ได้ ข้อมูลจะถูกเซฟไว้ในเครื่องนี้เท่านั้น');
+    }
+}
 
         document.addEventListener('DOMContentLoaded', () => {
             checkViewMode();
