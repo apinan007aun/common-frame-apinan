@@ -4,41 +4,36 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ระบบสรุปยอด COMMON FRAME of Establishment</title>
-    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <!-- SheetJS (xlsx) -->
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-    <!-- html2pdf.js (เพิ่มกลับเข้ามาเพื่อป้องกัน Script Crash) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-    <!-- QRCode.js -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-    <!-- Google Fonts - Prompt -->
     <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Prompt', sans-serif; background-color: #f0f4f9; }
         
-        /* สไตล์สำหรับควบคุมการพิมพ์และการ Export PDF ไม่ให้ภาพซ้อน */
-        .pdf-export-mode {
-            width: 1080px !important;
-            max-width: 1080px !important;
+        /* สไตล์สำหรับ Print และ PDF */
+        @media print {
+            .no-print { display: none !important; }
+            .col-manage { display: none !important; }
+            body { background: white !important; }
+            main { max-width: 100% !important; padding: 0 !important; }
+        }
+        .pdf-export-container {
+            width: 1000px !important;
+            max-width: 1000px !important;
             margin: 0 auto !important;
             background: #ffffff !important;
-            padding: 15px !important;
-            position: relative !important;
+            padding: 20px !important;
         }
-        .pdf-export-mode .no-print { display: none !important; }
-        .pdf-export-mode .col-manage { display: none !important; }
         .pdf-page-break { page-break-inside: avoid !important; break-inside: avoid !important; }
         tr { page-break-inside: avoid !important; break-inside: avoid !important; }
     </style>
 </head>
 <body class="text-slate-800">
 
-    <!-- Top Navigation / Header -->
     <header class="bg-[#00407A] text-white shadow-md sticky top-0 z-30 no-print">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
             <div class="flex items-center space-x-3">
@@ -51,18 +46,17 @@
                 </div>
             </div>
             
-            <!-- Actions Header -->
             <div class="flex items-center space-x-2">
                 <button id="btnImport" onclick="document.getElementById('importFileInput').click()" class="bg-[#0066C2] hover:bg-[#00407A] text-white text-xs sm:text-sm font-medium px-3 py-2 rounded-xl transition flex items-center gap-1.5 shadow-sm">
                     <i class="fa-solid fa-file-import text-amber-300"></i> <span class="hidden sm:inline">นำเข้า Excel</span>
                 </button>
                 <input type="file" id="importFileInput" accept=".xlsx, .xls, .csv" onchange="importExcelData(event)" class="hidden">
 
-                <button onclick="exportToExcel()" class="bg-[#0066C2] hover:bg-[#00407A] text-white text-xs sm:text-sm font-medium px-3 py-2 rounded-xl transition flex items-center gap-1.5 shadow-sm">
+                <button id="btnExportExcel" onclick="exportToExcel()" class="bg-[#0066C2] hover:bg-[#00407A] text-white text-xs sm:text-sm font-medium px-3 py-2 rounded-xl transition flex items-center gap-1.5 shadow-sm">
                     <i class="fa-solid fa-file-excel text-emerald-300"></i> <span class="hidden sm:inline">ส่งออก Excel</span>
                 </button>
 
-                <button onclick="exportToPDF()" class="bg-[#0066C2] hover:bg-[#00407A] text-white text-xs sm:text-sm font-medium px-3 py-2 rounded-xl transition flex items-center gap-1.5 shadow-sm">
+                <button id="btnExportPDF" onclick="exportToPDF()" class="bg-[#0066C2] hover:bg-[#00407A] text-white text-xs sm:text-sm font-medium px-3 py-2 rounded-xl transition flex items-center gap-1.5 shadow-sm">
                     <i class="fa-solid fa-file-pdf text-rose-300"></i> <span class="hidden sm:inline">PDF</span>
                 </button>
 
@@ -77,7 +71,6 @@
         </div>
     </header>
 
-    <!-- Main Container -->
     <main id="dashboard-content" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
         
         <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-6 rounded-2xl shadow-sm border border-slate-200/80 pdf-page-break">
@@ -97,7 +90,6 @@
             </div>
         </div>
 
-        <!-- Metric KPI Cards -->
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 pdf-page-break">
             <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200/70 border-l-4 border-l-[#00407A] flex items-center justify-between">
                 <div>
@@ -145,7 +137,6 @@
             </div>
         </div>
 
-        <!-- Visual Analytics Charts -->
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 pdf-page-break">
             <div class="lg:col-span-2 bg-white p-6 rounded-2xl shadow-sm border border-slate-200/70">
                 <div class="flex items-center justify-between mb-4">
@@ -167,7 +158,6 @@
             </div>
         </div>
 
-        <!-- Data Management Table Section -->
         <div class="bg-white rounded-2xl shadow-sm border border-slate-200/70 overflow-hidden">
             <div class="p-6 border-b border-slate-100 flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
@@ -215,7 +205,6 @@
                 </table>
             </div>
 
-            <!-- Pagination Bar -->
             <div id="paginationContainer" class="p-4 bg-slate-50 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs no-print">
                 <div class="text-slate-500 font-medium" id="paginationInfo">แสดง 0 - 0 จากทั้งหมด 0 รายการ</div>
                 <div class="flex items-center gap-2">
@@ -231,7 +220,6 @@
         </div>
     </main>
 
-    <!-- Modal Form: Add / Edit Job -->
     <div id="jobModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4 no-print">
         <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-hidden border border-slate-100">
             <div class="bg-[#00407A] px-6 py-4 text-white flex justify-between items-center">
@@ -279,7 +267,6 @@
         </div>
     </div>
 
-    <!-- Share / Export QR Code Modal -->
     <div id="shareModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4 no-print">
         <div class="bg-white rounded-2xl shadow-xl w-full max-w-sm overflow-hidden text-center p-6 border border-slate-100 space-y-4">
             <div class="flex justify-between items-center border-b border-slate-100 pb-3">
@@ -304,7 +291,6 @@
         </div>
     </div>
 
-    <!-- Application Script -->
     <script>
         const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwYZlIjEn8NpAQR8xBc64IY8ciuWongPvbIRJh2MH2y5jK2A6pzf6OArzC_nwK_ZNWi/exec';
 
@@ -334,18 +320,24 @@
         }
 
         async function loadDataFromSheets() {
+            // โหลดข้อมูลเก่าจากเครื่องออกมาก่อน เพื่อป้องกันข้อมูลหาย
+            const localData = JSON.parse(localStorage.getItem('common_frame_jobs_data')) || [];
+            if (localData.length > 0) {
+                jobs = localData;
+                updateDashboard();
+            }
+
             try {
                 const res = await fetch(GOOGLE_SCRIPT_URL);
                 const data = await res.json();
-                if (Array.isArray(data)) {
+                if (Array.isArray(data) && data.length > 0) {
                     jobs = data;
                     localStorage.setItem('common_frame_jobs_data', JSON.stringify(jobs));
+                    updateDashboard();
                 }
             } catch (err) {
                 console.error("Error loading data from Google Sheets:", err);
-                jobs = JSON.parse(localStorage.getItem('common_frame_jobs_data')) || [];
             }
-            updateDashboard();
         }
 
         async function saveData() {
@@ -487,7 +479,9 @@
             });
 
             const districtLabels = Object.keys(districtMap);
-            const ctxDistrict = document.getElementById('districtChart').getContext('2d');
+            const ctxDistrict = document.getElementById('districtChart')?.getContext('2d');
+            if(!ctxDistrict) return;
+
             if(districtChartInstance) districtChartInstance.destroy();
 
             districtChartInstance = new Chart(ctxDistrict, {
@@ -512,7 +506,9 @@
             const completedPct = totalAll > 0 ? ((completedAll / totalAll) * 100).toFixed(1) : 0;
             const remainingPct = totalAll > 0 ? (100 - completedPct).toFixed(1) : 100;
 
-            const ctxType = document.getElementById('typeChart').getContext('2d');
+            const ctxType = document.getElementById('typeChart')?.getContext('2d');
+            if(!ctxType) return;
+
             if(typeChartInstance) typeChartInstance.destroy();
 
             typeChartInstance = new Chart(ctxType, {
@@ -551,6 +547,7 @@
 
         function populateDistrictFilter() {
             const filterSelect = document.getElementById('districtFilter');
+            if (!filterSelect) return;
             const currentVal = filterSelect.value;
             const districts = Array.from(new Set(jobs.map(j => j.district.trim())));
             filterSelect.innerHTML = '<option value="">-- ทุกอำเภอ --</option>';
@@ -564,6 +561,7 @@
 
         function renderTable(renderAllForPdf = false) {
             const tbody = document.getElementById('tableBody');
+            if (!tbody) return;
             const searchVal = document.getElementById('searchInput').value.toLowerCase().trim();
             const selectedDistrict = document.getElementById('districtFilter').value;
             tbody.innerHTML = '';
@@ -665,7 +663,7 @@
             });
         }
 
-        // สร้าง QR Code และลิงก์โหมดดูอย่างเดียว
+        // ลิงก์สำหรับ View-Only Mode
         function openShareModal() {
             const baseUrl = window.location.origin + window.location.pathname;
             const viewOnlyUrl = `${baseUrl}?mode=view`;
@@ -741,15 +739,15 @@
             }
         }
 
-        // ระบบส่งออก PDF คมชัดสูง จัดระเบียบหน้าไม่ให้ซ้อนทับกัน
+        // ระบบส่งออก PDF คมชัดสูง ป้องกันภาพซ้อน
         async function exportToPDF() {
             const element = document.getElementById('dashboard-content');
-            element.classList.add('pdf-export-mode');
+            element.classList.add('pdf-export-container');
 
             renderTable(true);
             renderCharts();
 
-            await new Promise(resolve => setTimeout(resolve, 400));
+            await new Promise(resolve => setTimeout(resolve, 300));
 
             const opt = {
                 margin:       [0.2, 0.2, 0.2, 0.2],
@@ -767,10 +765,10 @@
                     window.print();
                 }
             } catch (err) {
-                console.error("PDF Export Error:", err);
+                console.error("PDF Error:", err);
                 window.print();
             } finally {
-                element.classList.remove('pdf-export-mode');
+                element.classList.remove('pdf-export-container');
                 renderTable(false);
                 renderCharts();
             }
