@@ -12,24 +12,57 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <!-- SheetJS (xlsx) -->
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-    <!-- html2pdf.js -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <!-- QRCode.js -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <!-- Google Fonts - Prompt -->
     <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Prompt', sans-serif; background-color: #f0f4f9; }
-        @media print { .no-print { display: none !important; } body { background: white; } }
-        .pdf-export-mode {
-            width: 1100px !important;
-            max-width: 1100px !important;
-            margin: 0 auto !important;
-            background: #ffffff !important;
-            padding: 20px !important;
+
+        /* ---------------------------------------------------- */
+        /* 🖨️ PRINT / PDF STYLE RULES (คมชัดสูง ไม่แตก ไม่ตัดขอบ) */
+        /* ---------------------------------------------------- */
+        @media print {
+            @page {
+                size: A4 landscape;
+                margin: 8mm;
+            }
+            body {
+                background: white !important;
+                color: #000 !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+            .no-print, header, #shareModal, #jobModal, #paginationContainer {
+                display: none !important;
+            }
+            main {
+                max-width: 100% !important;
+                width: 100% !important;
+                padding: 0 !important;
+                margin: 0 !important;
+                space-y: 12px !important;
+            }
+            .pdf-page-break {
+                page-break-inside: avoid !important;
+                break-inside: avoid !important;
+            }
+            tr {
+                page-break-inside: avoid !important;
+                break-inside: avoid !important;
+            }
+            canvas {
+                max-width: 100% !important;
+                height: auto !important;
+            }
+            .col-manage {
+                display: none !important;
+            }
+            table {
+                width: 100% !important;
+                font-size: 11px !important;
+            }
         }
-        .pdf-page-break { page-break-inside: avoid !important; break-inside: avoid !important; }
-        tr { page-break-inside: avoid !important; break-inside: avoid !important; }
     </style>
 </head>
 <body class="text-slate-800">
@@ -338,7 +371,7 @@
                     localStorage.setItem('common_frame_jobs_data', JSON.stringify(jobs));
                 }
             } catch (err) {
-                console.error("Error loading data:", err);
+                console.error("Error loading data from Google Sheets:", err);
                 jobs = JSON.parse(localStorage.getItem('common_frame_jobs_data')) || [];
             }
             updateDashboard();
@@ -357,7 +390,7 @@
                     body: JSON.stringify(jobs)
                 });
             } catch (err) {
-                console.error("Error saving data:", err);
+                console.error("Error saving data to Google Sheets:", err);
             }
         }
 
@@ -736,35 +769,13 @@
             }
         }
 
-        // ระบบส่งออก PDF ความละเอียดสูง (ปรับความกว้างคงที่ ป้องกันภาพหลุด)
-        async function exportToPDF() {
-            const element = document.getElementById('dashboard-content');
-            element.classList.add('pdf-export-mode');
-
+        // 🖨️ ระบบส่งออก PDF คมชัดสูง (Vector Print Mode)
+        function exportToPDF() {
             renderTable(true);
-            renderCharts();
-
-            await new Promise(resolve => setTimeout(resolve, 500));
-
-            const opt = {
-                margin:       [0.2, 0.2, 0.2, 0.2],
-                filename:     `COMMON_FRAME_${new Date().toISOString().slice(0,10)}.pdf`,
-                image:        { type: 'jpeg', quality: 0.98 },
-                html2canvas:  { scale: 2, useCORS: true, logging: false, scrollX: 0, scrollY: 0 },
-                jsPDF:        { unit: 'in', format: 'a4', orientation: 'landscape' },
-                pagebreak:    { mode: ['avoid-all', 'css', 'legacy'] }
-            };
-
-            try {
-                await html2pdf().set(opt).from(element).save();
-            } catch (err) {
-                console.error("PDF Export Error:", err);
-                alert("เกิดข้อผิดพลาดในการสร้าง PDF กรุณาลองใหม่อีกครั้ง");
-            } finally {
-                element.classList.remove('pdf-export-mode');
+            setTimeout(() => {
+                window.print();
                 renderTable(false);
-                renderCharts();
-            }
+            }, 300);
         }
     </script>
 </body>
