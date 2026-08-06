@@ -295,6 +295,7 @@
 
     <!-- Application Script -->
     <script>
+        // ลิงก์ Google Apps Script สำหรับเชื่อมต่อฐานข้อมูล
         const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwYZlIjEn8NpAQR8xBc64IY8ciuWongPvbIRJh2MH2y5jK2A6pzf6OArzC_nwK_ZNWi/exec';
 
         let jobs = [];
@@ -332,7 +333,7 @@
                     localStorage.setItem('common_frame_jobs_data', JSON.stringify(jobs));
                 }
             } catch (err) {
-                console.error("Error loading data:", err);
+                console.error("Error loading data from Google Sheets:", err);
                 jobs = JSON.parse(localStorage.getItem('common_frame_jobs_data')) || [];
             }
             updateDashboard();
@@ -351,7 +352,7 @@
                     body: JSON.stringify(jobs)
                 });
             } catch (err) {
-                console.error("Error saving data:", err);
+                console.error("Error saving data to Google Sheets:", err);
             }
         }
 
@@ -384,11 +385,13 @@
                 const cTot = Number(j.controlTotal || 0), cComp = Number(j.controlCompleted || 0);
                 const sTot = Number(j.storeTotal || 0), sComp = Number(j.storeCompleted || 0);
                 const grandTotal = cTot + sTot, totalRecordedCompleted = cComp + sComp;
+                const grandRemaining = Math.max(0, grandTotal - totalRecordedCompleted);
                 return {
                     'ลำดับ': idx + 1, 'อำเภอ': j.district, 'อปท.': j.opt || '-',
                     'Control ทั้งหมด': cTot, 'Control เสร็จแล้ว': cComp,
                     'ร้านค้าบันทึกเพิ่ม ทั้งหมด': sTot, 'ร้านค้าบันทึกเพิ่ม เสร็จแล้ว': sComp,
                     'รวมบันทึกงาน (เสร็จแล้ว)': totalRecordedCompleted, 'รวมงานทั้งหมด': grandTotal,
+                    'คงเหลือดำเนินการ': grandRemaining,
                     'ความคืบหน้า (%)': grandTotal > 0 ? ((totalRecordedCompleted / grandTotal) * 100).toFixed(1) + '%' : '0%',
                     'ผู้รับผิดชอบ': j.assignee || '-'
                 };
