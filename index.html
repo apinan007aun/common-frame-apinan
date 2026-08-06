@@ -20,9 +20,22 @@
     <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Prompt', sans-serif; background-color: #f0f4f9; }
-        @media print { .no-print { display: none !important; } body { background: white; } }
-        .pdf-page-break { page-break-inside: avoid !important; }
-        tr { page-break-inside: avoid !important; }
+        
+        @media print {
+            .no-print { display: none !important; }
+            .col-manage { display: none !important; }
+            body { background: white !important; }
+            main { max-width: 100% !important; padding: 0 !important; }
+        }
+        .pdf-export-mode {
+            width: 1000px !important;
+            max-width: 1000px !important;
+            margin: 0 auto !important;
+            background: #ffffff !important;
+            padding: 20px !important;
+        }
+        .pdf-page-break { page-break-inside: avoid !important; break-inside: avoid !important; }
+        tr { page-break-inside: avoid !important; break-inside: avoid !important; }
     </style>
 </head>
 <body class="text-slate-800">
@@ -47,11 +60,11 @@
                 </button>
                 <input type="file" id="importFileInput" accept=".xlsx, .xls, .csv" onchange="importExcelData(event)" class="hidden">
 
-                <button onclick="exportToExcel()" class="bg-[#0066C2] hover:bg-[#00407A] text-white text-xs sm:text-sm font-medium px-3 py-2 rounded-xl transition flex items-center gap-1.5 shadow-sm">
+                <button id="btnExportExcel" onclick="exportToExcel()" class="bg-[#0066C2] hover:bg-[#00407A] text-white text-xs sm:text-sm font-medium px-3 py-2 rounded-xl transition flex items-center gap-1.5 shadow-sm">
                     <i class="fa-solid fa-file-excel text-emerald-300"></i> <span class="hidden sm:inline">ส่งออก Excel</span>
                 </button>
 
-                <button onclick="exportToPDF()" class="bg-[#0066C2] hover:bg-[#00407A] text-white text-xs sm:text-sm font-medium px-3 py-2 rounded-xl transition flex items-center gap-1.5 shadow-sm">
+                <button id="btnExportPDF" onclick="exportToPDF()" class="bg-[#0066C2] hover:bg-[#00407A] text-white text-xs sm:text-sm font-medium px-3 py-2 rounded-xl transition flex items-center gap-1.5 shadow-sm">
                     <i class="fa-solid fa-file-pdf text-rose-300"></i> <span class="hidden sm:inline">PDF</span>
                 </button>
 
@@ -283,7 +296,7 @@
                 <label class="text-xs font-semibold text-slate-700">ลิงก์เข้าชมรายงานข้อมูล:</label>
                 <div class="flex items-center gap-1.5">
                     <input type="text" id="shareUrlInput" readonly class="w-full text-xs px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-600">
-                    <button onclick="copyShareUrl()" class="bg-[#0066C2] hover:bg-[#00407A] text-white text-xs font-medium px-3 py-2 rounded-xl flex items-center gap-1 whitespace-nowrap shadow-sm">
+                    <button onclick="copyShareUrl()" class="bg-[#0066C2] hover:bg-[#00407A] text-white text-xs font-medium px-3 py-2 rounded-xl transition flex items-center gap-1 whitespace-nowrap shadow-sm">
                         <i class="fa-solid fa-copy"></i> คัดลอก
                     </button>
                 </div>
@@ -295,7 +308,6 @@
 
     <!-- Application Script -->
     <script>
-        // ลิงก์ Google Apps Script สำหรับเชื่อมต่อฐานข้อมูล
         const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwYZlIjEn8NpAQR8xBc64IY8ciuWongPvbIRJh2MH2y5jK2A6pzf6OArzC_nwK_ZNWi/exec';
 
         let jobs = [];
@@ -307,36 +319,43 @@
         let districtChartInstance = null;
         let typeChartInstance = null;
 
-        // เช็ก Query Parameter โหมดอ่านอย่างเดียว
         function checkViewMode() {
-            const urlParams = new URLSearchParams(window.location.search);
-            if (urlParams.get('mode') === 'view') {
-                isSharedViewMode = true;
-                const badge = document.getElementById('syncStatus');
-                if (badge) {
-                    badge.innerHTML = '<i class="fa-solid fa-eye mr-1.5"></i> 👁️ โหมดดูข้อมูล (Read-Only)';
-                    badge.className = 'inline-flex items-center px-3.5 py-1.5 rounded-full text-xs font-semibold bg-amber-50 text-amber-800 border border-amber-200';
+            try {
+                const urlParams = new URLSearchParams(window.location.search);
+                if (urlParams.get('mode') === 'view') {
+                    isSharedViewMode = true;
+                    const badge = document.getElementById('syncStatus');
+                    if (badge) {
+                        badge.innerHTML = '<i class="fa-solid fa-eye mr-1.5"></i> 👁️ โหมดดูข้อมูล (Read-Only)';
+                        badge.className = 'inline-flex items-center px-3.5 py-1.5 rounded-full text-xs font-semibold bg-amber-50 text-amber-800 border border-amber-200';
+                    }
+                    document.getElementById('btnMainShare')?.classList.add('hidden');
+                    document.getElementById('btnAddJob')?.classList.add('hidden');
+                    document.getElementById('btnImport')?.classList.add('hidden');
+                    document.querySelectorAll('.col-manage').forEach(el => el.classList.add('hidden'));
                 }
-                document.getElementById('btnMainShare')?.classList.add('hidden');
-                document.getElementById('btnAddJob')?.classList.add('hidden');
-                document.getElementById('btnImport')?.classList.add('hidden');
-                document.querySelectorAll('.col-manage').forEach(el => el.classList.add('hidden'));
-            }
+            } catch(e) { console.error(e); }
         }
 
         async function loadDataFromSheets() {
+            // ดึงข้อมูลใน LocalStorage มาแสดงผลลัพธ์ตั้งต้น ป้องกันข้อมูลหายเป็น 0
+            const localData = JSON.parse(localStorage.getItem('common_frame_jobs_data')) || [];
+            if (localData.length > 0) {
+                jobs = localData;
+                updateDashboard();
+            }
+
             try {
                 const res = await fetch(GOOGLE_SCRIPT_URL);
                 const data = await res.json();
-                if (Array.isArray(data)) {
+                if (Array.isArray(data) && data.length > 0) {
                     jobs = data;
                     localStorage.setItem('common_frame_jobs_data', JSON.stringify(jobs));
+                    updateDashboard();
                 }
             } catch (err) {
-                console.error("Error loading data from Google Sheets:", err);
-                jobs = JSON.parse(localStorage.getItem('common_frame_jobs_data')) || [];
+                console.warn("ไม่สามารถดึงข้อมูลออนไลน์ได้ จะใช้ข้อมูลล่าสุดในเครื่อง:", err);
             }
-            updateDashboard();
         }
 
         async function saveData() {
@@ -370,11 +389,11 @@
             const btnDetailed = document.getElementById('btn-mode-detailed');
 
             if (mode === 'compact') {
-                btnCompact.className = "px-3 py-1.5 text-xs font-semibold rounded-lg transition shadow-sm bg-white text-[#00407A]";
-                btnDetailed.className = "px-3 py-1.5 text-xs font-semibold rounded-lg transition text-slate-500 hover:text-slate-800";
+                if(btnCompact) btnCompact.className = "px-3 py-1.5 text-xs font-semibold rounded-lg transition shadow-sm bg-white text-[#00407A]";
+                if(btnDetailed) btnDetailed.className = "px-3 py-1.5 text-xs font-semibold rounded-lg transition text-slate-500 hover:text-slate-800";
             } else {
-                btnDetailed.className = "px-3 py-1.5 text-xs font-semibold rounded-lg transition shadow-sm bg-white text-[#00407A]";
-                btnCompact.className = "px-3 py-1.5 text-xs font-semibold rounded-lg transition text-slate-500 hover:text-slate-800";
+                if(btnDetailed) btnDetailed.className = "px-3 py-1.5 text-xs font-semibold rounded-lg transition shadow-sm bg-white text-[#00407A]";
+                if(btnCompact) btnCompact.className = "px-3 py-1.5 text-xs font-semibold rounded-lg transition text-slate-500 hover:text-slate-800";
             }
             renderTable();
         }
@@ -458,15 +477,15 @@
             const grandTotal = totalControl + totalStore;
             const grandCompleted = completedControl + completedStore;
 
-            document.getElementById('kpi-total').innerText = grandTotal.toLocaleString();
-            document.getElementById('kpi-control').innerText = totalControl.toLocaleString();
-            document.getElementById('kpi-control-completed').innerText = `เสร็จแล้ว ${completedControl.toLocaleString()}`;
-            document.getElementById('kpi-stores').innerText = totalStore.toLocaleString();
-            document.getElementById('kpi-stores-completed').innerText = `เสร็จแล้ว ${completedStore.toLocaleString()}`;
-            document.getElementById('kpi-total-completed').innerText = grandCompleted.toLocaleString();
-            document.getElementById('kpi-progress-percent').innerText = `ความคืบหน้าภาพรวม ${grandTotal > 0 ? Math.round((grandCompleted / grandTotal) * 100) : 0}%`;
-            document.getElementById('kpi-complete-100').innerText = `${complete100Count} / ${jobs.length}`;
-            document.getElementById('kpi-complete-100-desc').innerText = jobs.length > 0 ? `เสร็จสมบูรณ์ ${Math.round((complete100Count/jobs.length)*100)}%` : 'ไม่มีข้อมูล';
+            if(document.getElementById('kpi-total')) document.getElementById('kpi-total').innerText = grandTotal.toLocaleString();
+            if(document.getElementById('kpi-control')) document.getElementById('kpi-control').innerText = totalControl.toLocaleString();
+            if(document.getElementById('kpi-control-completed')) document.getElementById('kpi-control-completed').innerText = `เสร็จแล้ว ${completedControl.toLocaleString()}`;
+            if(document.getElementById('kpi-stores')) document.getElementById('kpi-stores').innerText = totalStore.toLocaleString();
+            if(document.getElementById('kpi-stores-completed')) document.getElementById('kpi-stores-completed').innerText = `เสร็จแล้ว ${completedStore.toLocaleString()}`;
+            if(document.getElementById('kpi-total-completed')) document.getElementById('kpi-total-completed').innerText = grandCompleted.toLocaleString();
+            if(document.getElementById('kpi-progress-percent')) document.getElementById('kpi-progress-percent').innerText = `ความคืบหน้าภาพรวม ${grandTotal > 0 ? Math.round((grandCompleted / grandTotal) * 100) : 0}%`;
+            if(document.getElementById('kpi-complete-100')) document.getElementById('kpi-complete-100').innerText = `${complete100Count} / ${jobs.length}`;
+            if(document.getElementById('kpi-complete-100-desc')) document.getElementById('kpi-complete-100-desc').innerText = jobs.length > 0 ? `เสร็จสมบูรณ์ ${Math.round((complete100Count/jobs.length)*100)}%` : 'ไม่มีข้อมูล';
         }
 
         function renderCharts() {
@@ -478,20 +497,21 @@
             });
 
             const districtLabels = Object.keys(districtMap);
-            const ctxDistrict = document.getElementById('districtChart').getContext('2d');
-            if(districtChartInstance) districtChartInstance.destroy();
-
-            districtChartInstance = new Chart(ctxDistrict, {
-                type: 'bar',
-                data: {
-                    labels: districtLabels,
-                    datasets: [
-                        { label: 'Control ที่ต้องปรับปรุง', data: districtLabels.map(d => districtMap[d].control), backgroundColor: '#0066C2', borderRadius: 8 },
-                        { label: 'ร้านค้าที่ต้องบันทึกเพิ่ม', data: districtLabels.map(d => districtMap[d].store), backgroundColor: '#00A3E0', borderRadius: 8 }
-                    ]
-                },
-                options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
-            });
+            const ctxDistrict = document.getElementById('districtChart')?.getContext('2d');
+            if(ctxDistrict) {
+                if(districtChartInstance) districtChartInstance.destroy();
+                districtChartInstance = new Chart(ctxDistrict, {
+                    type: 'bar',
+                    data: {
+                        labels: districtLabels,
+                        datasets: [
+                            { label: 'Control ที่ต้องปรับปรุง', data: districtLabels.map(d => districtMap[d].control), backgroundColor: '#0066C2', borderRadius: 8 },
+                            { label: 'ร้านค้าที่ต้องบันทึกเพิ่ม', data: districtLabels.map(d => districtMap[d].store), backgroundColor: '#00A3E0', borderRadius: 8 }
+                        ]
+                    },
+                    options: { responsive: true, maintainAspectRatio: false, animation: false, scales: { y: { beginAtZero: true } } }
+                });
+            }
 
             let totalAll = 0, completedAll = 0;
             jobs.forEach(j => {
@@ -503,44 +523,47 @@
             const completedPct = totalAll > 0 ? ((completedAll / totalAll) * 100).toFixed(1) : 0;
             const remainingPct = totalAll > 0 ? (100 - completedPct).toFixed(1) : 100;
 
-            const ctxType = document.getElementById('typeChart').getContext('2d');
-            if(typeChartInstance) typeChartInstance.destroy();
-
-            typeChartInstance = new Chart(ctxType, {
-                type: 'doughnut',
-                data: {
-                    labels: [
-                        `เสร็จแล้ว ${completedPct}%`, 
-                        `คงเหลือ ${remainingPct}%`
-                    ],
-                    datasets: [{ 
-                        data: [completedAll, remainingAll], 
-                        backgroundColor: ['#70B035', '#CBD5E1'],
-                        borderWidth: 2,
-                        borderColor: '#ffffff'
-                    }]
-                },
-                options: { 
-                    responsive: true, 
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: { position: 'bottom', labels: { font: { family: 'Prompt', size: 12 } } },
-                        tooltip: {
-                            callbacks: {
-                                label: function(context) {
-                                    const label = context.label || '';
-                                    const val = context.raw || 0;
-                                    return ` ${label}: ${val.toLocaleString()} รายการ`;
+            const ctxType = document.getElementById('typeChart')?.getContext('2d');
+            if(ctxType) {
+                if(typeChartInstance) typeChartInstance.destroy();
+                typeChartInstance = new Chart(ctxType, {
+                    type: 'doughnut',
+                    data: {
+                        labels: [
+                            `เสร็จแล้ว ${completedPct}%`, 
+                            `คงเหลือ ${remainingPct}%`
+                        ],
+                        datasets: [{ 
+                            data: [completedAll, remainingAll], 
+                            backgroundColor: ['#70B035', '#CBD5E1'],
+                            borderWidth: 2,
+                            borderColor: '#ffffff'
+                        }]
+                    },
+                    options: { 
+                        responsive: true, 
+                        maintainAspectRatio: false,
+                        animation: false,
+                        plugins: {
+                            legend: { position: 'bottom', labels: { font: { family: 'Prompt', size: 12 } } },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        const label = context.label || '';
+                                        const val = context.raw || 0;
+                                        return ` ${label}: ${val.toLocaleString()} รายการ`;
+                                    }
                                 }
                             }
                         }
                     }
-                }
-            });
+                });
+            }
         }
 
         function populateDistrictFilter() {
             const filterSelect = document.getElementById('districtFilter');
+            if (!filterSelect) return;
             const currentVal = filterSelect.value;
             const districts = Array.from(new Set(jobs.map(j => j.district.trim())));
             filterSelect.innerHTML = '<option value="">-- ทุกอำเภอ --</option>';
@@ -554,8 +577,9 @@
 
         function renderTable(renderAllForPdf = false) {
             const tbody = document.getElementById('tableBody');
-            const searchVal = document.getElementById('searchInput').value.toLowerCase().trim();
-            const selectedDistrict = document.getElementById('districtFilter').value;
+            if (!tbody) return;
+            const searchVal = (document.getElementById('searchInput')?.value || '').toLowerCase().trim();
+            const selectedDistrict = document.getElementById('districtFilter')?.value || '';
             tbody.innerHTML = '';
 
             const filteredJobs = jobs.filter(j => {
@@ -567,10 +591,10 @@
             const totalPages = Math.ceil(totalItems / itemsPerPage) || 1;
             let displayJobs = renderAllForPdf ? filteredJobs : filteredJobs.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
-            document.getElementById('paginationInfo').innerText = `แสดง ${totalItems > 0 ? (currentPage - 1) * itemsPerPage + 1 : 0} - ${Math.min(currentPage * itemsPerPage, totalItems)} จากทั้งหมด ${totalItems} รายการ`;
-            document.getElementById('pageIndicator').innerText = `หน้า ${currentPage} / ${totalPages}`;
-            document.getElementById('btnPrevPage').disabled = (currentPage <= 1);
-            document.getElementById('btnNextPage').disabled = (currentPage >= totalPages);
+            if(document.getElementById('paginationInfo')) document.getElementById('paginationInfo').innerText = `แสดง ${totalItems > 0 ? (currentPage - 1) * itemsPerPage + 1 : 0} - ${Math.min(currentPage * itemsPerPage, totalItems)} จากทั้งหมด ${totalItems} รายการ`;
+            if(document.getElementById('pageIndicator')) document.getElementById('pageIndicator').innerText = `หน้า ${currentPage} / ${totalPages}`;
+            if(document.getElementById('btnPrevPage')) document.getElementById('btnPrevPage').disabled = (currentPage <= 1);
+            if(document.getElementById('btnNextPage')) document.getElementById('btnNextPage').disabled = (currentPage >= totalPages);
 
             if(displayJobs.length === 0) {
                 tbody.innerHTML = `<tr><td colspan="10" class="text-center py-8 text-slate-400">ยังไม่มีข้อมูลในระบบ</td></tr>`;
@@ -578,7 +602,7 @@
             }
 
             displayJobs.forEach((item, pageIdx) => {
-                const globalIndex = (currentPage - 1) * itemsPerPage + pageIdx;
+                const globalIndex = renderAllForPdf ? pageIdx : ((currentPage - 1) * itemsPerPage + pageIdx);
                 const cTot = Number(item.controlTotal || 0), cComp = Number(item.controlCompleted || 0);
                 const sTot = Number(item.storeTotal || 0), sComp = Number(item.storeCompleted || 0);
                 const grandTotal = cTot + sTot, totalRecordedCompleted = cComp + sComp;
@@ -655,7 +679,6 @@
             });
         }
 
-        // ลิงก์สำหรับ View-Only Mode
         function openShareModal() {
             const baseUrl = window.location.origin + window.location.pathname;
             const viewOnlyUrl = `${baseUrl}?mode=view`;
@@ -732,9 +755,7 @@
         }
 
         function exportToPDF() {
-            renderTable(true);
-            html2pdf().set({ margin: [0.3, 0.3, 0.3, 0.3], filename: `COMMON_FRAME_${new Date().toISOString().slice(0,10)}.pdf`, jsPDF: { unit: 'in', format: 'a4', orientation: 'landscape' } })
-                .from(document.getElementById('dashboard-content')).save().then(() => renderTable(false));
+            window.print();
         }
     </script>
 </body>
