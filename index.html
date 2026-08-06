@@ -27,8 +27,7 @@
             body { background: white !important; }
             main { max-width: 100% !important; padding: 0 !important; }
         }
-        
-        /* สไตล์สำหรับปรับสเกลบันทึก PDF ไม่ให้ภาพซ้อน */
+        /* ล็อคความกว้างขณะ Export PDF ป้องกันตัวหนังสือและตารางซ้อนทับกัน */
         .pdf-export-mode {
             width: 1000px !important;
             max-width: 1000px !important;
@@ -340,7 +339,7 @@
         }
 
         async function loadDataFromSheets() {
-            // โหลดข้อมูลเดิมในเครื่องออกมาก่อนเสมอ ป้องกันข้อมูลถูกลบเป็น 0
+            // ดึงข้อมูลในเครื่องออกมาก่อนเสมอ ป้องกันข้อมูลถูกลบเป็น 0
             const localData = JSON.parse(localStorage.getItem('common_frame_jobs_data')) || [];
             if (localData.length > 0) {
                 jobs = localData;
@@ -358,7 +357,7 @@
                     }
                 }
             } catch (err) {
-                console.warn("ระบบดึงข้อมูลจากเครื่องแทน:", err);
+                console.warn("ระบบดึงข้อมูลจาก LocalStorage แทนเนื่องจากติด CORS/HTTPS:", err);
             }
         }
 
@@ -683,6 +682,7 @@
             });
         }
 
+        // ลิงก์สำหรับ View-Only Mode
         function openShareModal() {
             const baseUrl = window.location.origin + window.location.pathname;
             const viewOnlyUrl = `${baseUrl}?mode=view`;
@@ -758,7 +758,7 @@
             }
         }
 
-        // ส่งออก PDF ล็อกขนาด ป้องกันภาพซ้อน
+        // บันทึก PDF คมชัด ไม่เกิดภาพซ้อน
         async function exportToPDF() {
             const element = document.getElementById('dashboard-content');
             element.classList.add('pdf-export-mode');
